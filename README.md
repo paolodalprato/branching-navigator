@@ -2,9 +2,14 @@
 
 An interactive branching narrative framework for creating decision-tree based experiences. Perfect for educational scenarios, corporate training, onboarding flows, and interactive storytelling.
 
-## 📥 Download
+## 📥 Installation
 
-**[Download ZIP](https://github.com/paolodalprato/interactive-simulators/releases/latest/download/branching-navigator-simulator.zip)** - Complete package with navigator, editor, and sample scenarios
+```bash
+git clone https://github.com/paolodalprato/branching-navigator.git
+cd branching-navigator
+```
+
+Then start a local server (see [Quick Start](#-quick-start) below).
 
 ## ✨ Features
 
