@@ -146,7 +146,7 @@
         // ============================================================
         // TREE MAP OVERLAY COMPONENT
         // ============================================================
-        const TreeMapOverlay = ({ nodes, startNode, selectedNode, onSelectNode, onClose }) => {
+        const TreeMapOverlay = ({ nodes, startNode, selectedNode, onSelectNode, onClose, fileName }) => {
             const levels = calculateNodeLevels(nodes, startNode);
             const maxLevel = Math.max(...Object.keys(levels).map(Number), 1);
             // Tree layout constants (px): vertical spacing, horizontal spacing, node box height, SVG padding
@@ -171,7 +171,7 @@
             return (
                 <div className="map-overlay">
                     <div className="map-overlay-header">
-                        <h2>Scenario Map</h2>
+                        <h2>{fileName || 'Scenario Map'}</h2>
                         <div className="map-legend">
                             <span><span className="legend-dot legend-start"></span> Start</span>
                             <span><span className="legend-dot legend-terminal"></span> Terminal</span>
@@ -605,7 +605,7 @@
                     
                     {showMetaEditor && <MetaEditor meta={scenario.meta} translations={scenario.translations || {}} onUpdate={handleUpdateMeta} onClose={() => setShowMetaEditor(false)} />}
                     
-                    {showMap && <TreeMapOverlay nodes={scenario.nodes} startNode={scenario.startNode} selectedNode={selectedNode} onSelectNode={setSelectedNode} onClose={() => setShowMap(false)} />}
+                    {showMap && <TreeMapOverlay nodes={scenario.nodes} startNode={scenario.startNode} selectedNode={selectedNode} onSelectNode={setSelectedNode} onClose={() => setShowMap(false)} fileName={fileName} />}
 
                     <div className="credits">
                         Created by <a href="https://ai-know.pro" target="_blank" rel="noopener noreferrer">Paolo Dalprato</a>
