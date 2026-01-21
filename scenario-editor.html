@@ -347,42 +347,82 @@
             );
         };
         
-        // ============================================================
-        // CREATE NODE POPUP COMPONENT
-        // ============================================================
-        const CreateNodePopup = ({ parentNodeId, existingNodeIds, onCreateNode, onCreated, onClose }) => {
-            const suggestId = () => { let base = `${parentNodeId}_child`, c = 1, id = base; while (existingNodeIds.includes(id)) { id = `${base}_${c}`; c++; } return id; };
-            const [nodeId, setNodeId] = useState(suggestId());
-            const [content, setContent] = useState('# New Node\n\nEdit this content.');
-            const [error, setError] = useState('');
-            const handleCreate = () => {
-                const cleanId = nodeId.trim().replace(/[^a-zA-Z0-9_]/g, '_');
-                if (!cleanId) { setError('Node ID required'); return; }
-                if (existingNodeIds.includes(cleanId)) { setError('ID already exists'); return; }
-                onCreateNode(cleanId, { content, choices: [], resources: [] });
-                onCreated(cleanId);
-            };
-            return (
-                <div className="modal-overlay">
-                    <div className="modal-content">
-                        <div className="modal-header"><h3>Create New Node</h3><button className="btn btn-close" onClick={onClose} style={{ padding: '0.25rem 0.5rem' }}>✕</button></div>
-                        <div className="form-group">
-                            <label className="form-label">Node ID</label>
-                            <input type="text" className="form-input" value={nodeId} onChange={(e) => { setNodeId(e.target.value); setError(''); }} />
-                            {error && <div style={{ color: '#ef4444', fontSize: '0.75rem', marginTop: '0.25rem' }}>{error}</div>}
-                        </div>
-                        <div className="form-group">
-                            <label className="form-label">Node content</label>
-                            <textarea className="form-input" rows={4} value={content} onChange={(e) => setContent(e.target.value)} />
-                        </div>
-                        <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem' }}>
-                            <button className="btn btn-success" onClick={handleCreate}>Create</button>
-                            <button className="btn btn-danger" onClick={onClose}>CANCEL</button>
-                        </div>
+    // ============================================================
+    // CREATE NODE POPUP COMPONENT
+    // ============================================================
+    const CreateNodePopup = ({ parentNodeId, existingNodeIds, onCreateNode, onCreated, onClose }) => {
+        const suggestId = () => { let base = `${parentNodeId}_child`, c = 1, id = base; while (existingNodeIds.includes(id)) { id = `${base}_${c}`; c++; } return id; };
+        const [nodeId, setNodeId] = useState(suggestId());
+        const [content, setContent] = useState('# New Node\\n\\nEdit this content.');
+        const [errors, setErrors] = useState({ id: '', content: '' });
+
+        const handleCreate = () => {
+            const cleanId = nodeId.trim().replace(/[^a-zA-Z0-9_]/g, '_');
+            const cleanContent = content.trim();
+            const newErrors = { id: '', content: '' };
+            let hasError = false;
+
+            // Validate Node ID
+            if (!cleanId) {
+                newErrors.id = 'Node ID is required';
+                hasError = true;
+            } else if (existingNodeIds.includes(cleanId)) {
+                newErrors.id = 'ID already exists';
+                hasError = true;
+            }
+
+            // Validate Content
+            if (!cleanContent) {
+                newErrors.content = 'Node content is required';
+                hasError = true;
+            }
+
+            setErrors(newErrors);
+
+            if (hasError) return;
+
+            onCreateNode(cleanId, { content: cleanContent, choices: [], resources: [] });
+            onCreated(cleanId);
+        };
+
+        return (
+            <div className="modal-overlay">
+                <div className="modal-content">
+                    <div className="modal-header"><h3>Create New Node</h3><button className="btn btn-close" onClick={onClose} style={{ padding: '0.25rem 0.5rem' }}>✕</button></div>
+                    <div className="form-group">
+                        <label className="form-label">
+                            Node ID <span style={{ color: '#ef4444' }}>*</span>
+                        </label>
+                        <input
+                            type="text"
+                            className="form-input"
+                            value={nodeId}
+                            onChange={(e) => { setNodeId(e.target.value); setErrors(prev => ({ ...prev, id: '' })); }}
+                            style={errors.id ? { borderColor: '#ef4444', boxShadow: '0 0 0 2px rgba(239, 68, 68, 0.2)' } : {}}
+                        />
+                        {errors.id && <div style={{ color: '#ef4444', fontSize: '0.75rem', marginTop: '0.35rem', display: 'flex', alignItems: 'center', gap: '0.25rem' }}><span>⚠️</span> {errors.id}</div>}
+                    </div>
+                    <div className="form-group">
+                        <label className="form-label">
+                            Node content <span style={{ color: '#ef4444' }}>*</span>
+                        </label>
+                        <textarea
+                            className="form-input"
+                            rows={4}
+                            value={content}
+                            onChange={(e) => { setContent(e.target.value); setErrors(prev => ({ ...prev, content: '' })); }}
+                            style={errors.content ? { borderColor: '#ef4444', boxShadow: '0 0 0 2px rgba(239, 68, 68, 0.2)' } : {}}
+                        />
+                        {errors.content && <div style={{ color: '#ef4444', fontSize: '0.75rem', marginTop: '0.35rem', display: 'flex', alignItems: 'center', gap: '0.25rem' }}><span>⚠️</span> {errors.content}</div>}
+                    </div>
+                    <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem' }}>
+                        <button className="btn btn-success" onClick={handleCreate}>Create</button>
+                        <button className="btn btn-danger" onClick={onClose}>CANCEL</button>
                     </div>
                 </div>
-            );
-        };
+            </div>
+        );
+    };
         
         // ============================================================
         // CHOICE EDITOR COMPONENT
@@ -511,7 +551,7 @@
                         >
                             <option value="">-- Select target --</option>
                             <option value="__CREATE__" style={{ fontWeight: 'bold', color: '#10b981' }}>+ Create new node...</option>
-                            {nodeIds.map(id => <option key={id} value={id}>{id}</option>)}
+                            {nodeIds.filter(id => id !== parentNodeId).map(id => <option key={id} value={id}>{id}</option>)}
                         </select>
                         {errors.target && (
                             <div style={{ color: '#ef4444', fontSize: '0.75rem', marginTop: '0.35rem', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
@@ -519,13 +559,11 @@
                             </div>
                         )}
                     </div>
-                    {hasUnsavedChanges && (
-                        <div style={{ marginTop: '0.75rem' }}>
-                            <button className="btn btn-success" onClick={handleSave} style={{ width: '100%' }}>
-                                Save Choice
-                            </button>
-                        </div>
-                    )}
+                    <div style={{ marginTop: '0.75rem' }}>
+                        <button className="btn btn-success" onClick={handleSave} style={{ width: '100%' }}>
+                            Save Choice
+                        </button>
+                    </div>
                     {showCreate && <CreateNodePopup parentNodeId={parentNodeId} existingNodeIds={nodeIds} onCreateNode={onCreateNode} onCreated={handleNodeCreated} onClose={() => { setShowCreate(false); setPendingTarget(null); }} />}
                 </div>
             );
@@ -535,29 +573,150 @@
         // RESOURCE EDITOR COMPONENT
         // ============================================================
         const ResourceEditor = ({ resource, index, onChange, onRemove }) => {
+            const [localType, setLocalType] = useState(resource.type || '');
+            const [localUrl, setLocalUrl] = useState(resource.url || '');
+            const [localLabel, setLocalLabel] = useState(resource.label || '');
+            const [errors, setErrors] = useState({ type: null, url: null, label: null });
+
+            // Check if local values differ from saved values
+            const hasUnsavedChanges = localType !== (resource.type || '') || localUrl !== (resource.url || '') || localLabel !== (resource.label || '');
+            const isComplete = (resource.type || '').trim() && (resource.url || '').trim() && (resource.label || '').trim();
+
+            // Sync local state when resource prop changes
+            useEffect(() => {
+                setLocalType(resource.type || '');
+                setLocalUrl(resource.url || '');
+                setLocalLabel(resource.label || '');
+            }, [resource.type, resource.url, resource.label]);
+
+            const handleTypeChange = (e) => {
+                setLocalType(e.target.value);
+                if (e.target.value) {
+                    setErrors(prev => ({ ...prev, type: null }));
+                }
+            };
+
+            const handleUrlChange = (e) => {
+                setLocalUrl(e.target.value);
+                if (e.target.value.trim()) {
+                    setErrors(prev => ({ ...prev, url: null }));
+                }
+            };
+
+            const handleLabelChange = (e) => {
+                setLocalLabel(e.target.value);
+                if (e.target.value.trim()) {
+                    setErrors(prev => ({ ...prev, label: null }));
+                }
+            };
+
+            const handleSave = () => {
+                const newErrors = { type: null, url: null, label: null };
+                let hasError = false;
+
+                if (!localType) {
+                    newErrors.type = 'Type is required';
+                    hasError = true;
+                }
+
+                if (!localUrl.trim()) {
+                    newErrors.url = 'URL is required';
+                    hasError = true;
+                }
+
+                if (!localLabel.trim()) {
+                    newErrors.label = 'Label is required';
+                    hasError = true;
+                }
+
+                setErrors(newErrors);
+
+                if (!hasError) {
+                    onChange({ ...resource, type: localType, url: localUrl.trim(), label: localLabel.trim() });
+                }
+            };
+
+            // Determine border style based on state
+            const getBorderStyle = () => {
+                if (errors.type || errors.url || errors.label) return { borderColor: '#ef4444' };
+                if (hasUnsavedChanges) return { borderColor: '#f59e0b', boxShadow: '0 0 0 2px rgba(245, 158, 11, 0.2)' };
+                if (isComplete) return { borderColor: '#10b981' };
+                return {};
+            };
+
             return (
-                <div className="resource-item">
+                <div className="resource-item" style={getBorderStyle()}>
                     <div className="resource-header">
-                        <span className="choice-number">Resource {index + 1}</span>
-                        <button className="btn btn-danger" onClick={onRemove} style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem' }}>Remove</button>
+                        <span className="choice-number">
+                            Resource {index + 1}
+                            {hasUnsavedChanges && <span style={{ color: '#f59e0b', marginLeft: '0.5rem', fontSize: '0.7rem' }}>● unsaved</span>}
+                            {isComplete && !hasUnsavedChanges && <span style={{ color: '#10b981', marginLeft: '0.5rem', fontSize: '0.7rem' }}>✓</span>}
+                        </span>
+                        <button className="btn btn-danger" onClick={onRemove} style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem' }}>REMOVE</button>
                     </div>
                     <div className="form-row">
                         <div className="form-group">
-                            <label className="form-label">Type</label>
-                            <select className="form-select" value={resource.type || 'link'} onChange={(e) => onChange({ ...resource, type: e.target.value })}>
+                            <label className="form-label">
+                                Type <span style={{ color: '#ef4444' }}>*</span>
+                            </label>
+                            <select
+                                className="form-select"
+                                value={localType}
+                                onChange={handleTypeChange}
+                                style={errors.type ? { borderColor: '#ef4444', boxShadow: '0 0 0 2px rgba(239, 68, 68, 0.2)' } : {}}
+                            >
+                                <option value="">-- Select type --</option>
                                 <option value="link">Link</option>
                                 <option value="download">Download</option>
                                 <option value="video">Video</option>
                             </select>
+                            {errors.type && (
+                                <div style={{ color: '#ef4444', fontSize: '0.75rem', marginTop: '0.35rem', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                                    <span>⚠️</span> {errors.type}
+                                </div>
+                            )}
                         </div>
                         <div className="form-group">
-                            <label className="form-label">URL</label>
-                            <input type="text" className="form-input" value={resource.url || ''} onChange={(e) => onChange({ ...resource, url: e.target.value })} />
+                            <label className="form-label">
+                                URL <span style={{ color: '#ef4444' }}>*</span>
+                            </label>
+                            <input
+                                type="text"
+                                className="form-input"
+                                value={localUrl}
+                                onChange={handleUrlChange}
+                                style={errors.url ? { borderColor: '#ef4444', boxShadow: '0 0 0 2px rgba(239, 68, 68, 0.2)' } : {}}
+                                placeholder="https://..."
+                            />
+                            {errors.url && (
+                                <div style={{ color: '#ef4444', fontSize: '0.75rem', marginTop: '0.35rem', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                                    <span>⚠️</span> {errors.url}
+                                </div>
+                            )}
                         </div>
                     </div>
                     <div className="form-group">
-                        <label className="form-label">Label</label>
-                        <input type="text" className="form-input" value={resource.label || ''} onChange={(e) => onChange({ ...resource, label: e.target.value })} />
+                        <label className="form-label">
+                            Label <span style={{ color: '#ef4444' }}>*</span>
+                        </label>
+                        <input
+                            type="text"
+                            className="form-input"
+                            value={localLabel}
+                            onChange={handleLabelChange}
+                            style={errors.label ? { borderColor: '#ef4444', boxShadow: '0 0 0 2px rgba(239, 68, 68, 0.2)' } : {}}
+                            placeholder="Resource description"
+                        />
+                        {errors.label && (
+                            <div style={{ color: '#ef4444', fontSize: '0.75rem', marginTop: '0.35rem', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                                <span>⚠️</span> {errors.label}
+                            </div>
+                        )}
+                    </div>
+                    <div style={{ marginTop: '0.75rem' }}>
+                        <button className="btn btn-success" onClick={handleSave} style={{ width: '100%' }}>
+                            Save Resource
+                        </button>
                     </div>
                 </div>
             );
@@ -566,7 +725,7 @@
         // ============================================================
         // NODE EDITOR COMPONENT
         // ============================================================
-        const NodeEditor = ({ nodeId, node, nodeIds, startNode, onUpdateNode, onDeleteNode, onSetStartNode, onRenameNode, onCreateNode }) => {
+        const NodeEditor = ({ nodeId, node, nodeIds, startNode, onUpdateNode, onDeleteNode, onRenameNode, onCreateNode }) => {
             const [newNodeId, setNewNodeId] = useState(nodeId);
             const [showRename, setShowRename] = useState(false);
 
@@ -593,7 +752,6 @@
                                     <button className="btn btn-danger" onClick={() => { setShowRename(false); setNewNodeId(nodeId); }}>Cancel</button>
                                 </div>
                             )}
-                            {nodeId !== startNode && <button className="btn btn-success" onClick={() => onSetStartNode(nodeId)}>Set as Start</button>}
                             {nodeId !== startNode && <button className="btn btn-danger" onClick={() => onDeleteNode(nodeId)}>Delete</button>}
                         </div>
                     </div>
@@ -740,7 +898,6 @@
                 setSelectedNode(Object.keys(newNodes)[0] || null);
                 setHasChanges(true);
             };
-            const handleSetStartNode = (nodeId) => { setScenario(prev => ({ ...prev, startNode: nodeId })); setHasChanges(true); };
             const handleRenameNode = (oldId, newId) => {
                 const newNodes = {};
                 Object.keys(scenario.nodes).forEach(id => {
@@ -783,7 +940,7 @@
                         </div>
                         
                         {selectedNode && scenario.nodes[selectedNode] ? (
-                            <NodeEditor nodeId={selectedNode} node={scenario.nodes[selectedNode]} nodeIds={nodeIds} startNode={scenario.startNode} onUpdateNode={handleUpdateNode} onDeleteNode={handleDeleteNode} onSetStartNode={handleSetStartNode} onRenameNode={handleRenameNode} onCreateNode={handleCreateNode} />
+                            <NodeEditor nodeId={selectedNode} node={scenario.nodes[selectedNode]} nodeIds={nodeIds} startNode={scenario.startNode} onUpdateNode={handleUpdateNode} onDeleteNode={handleDeleteNode} onRenameNode={handleRenameNode} onCreateNode={handleCreateNode} />
                         ) : (
                             <div className="empty-state"><h2>No node selected</h2><p>Select a node from the sidebar.</p></div>
                         )}
