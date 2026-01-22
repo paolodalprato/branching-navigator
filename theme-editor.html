@@ -123,13 +123,8 @@
                 .btn-visited { background: ${theme.buttons.visitedBackground}; color: ${theme.buttons.visitedText}; }
                 .btn-explored { background: ${theme.buttons.exploredBackground}; color: ${theme.buttons.exploredText}; border: 2px solid ${theme.colors.accent}; }
                 .btn-restart { background: ${theme.buttons.restartBackground}; color: ${theme.buttons.restartText}; margin-top: 1rem; }
-                .map-preview { background: ${theme.colors.background}; border: 1px solid ${theme.colors.border}; border-radius: 8px; padding: 1.5rem; margin-top: 1.5rem; }
-                .map-title { color: ${theme.colors.text}; font-size: 1rem; margin-bottom: 1rem; }
-                .nodes { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
-                .node { padding: 0.5rem 1rem; border-radius: 6px; font-size: 0.8rem; text-align: center; min-width: 80px; }
-                .node-current { background: ${theme.map.nodeCurrent}; color: ${theme.map.nodeCurrentText}; }
-                .node-visited { background: ${theme.map.nodeVisited}; color: ${theme.map.nodeVisitedText}; }
-                .node-unvisited { background: ${theme.map.nodeUnvisited}; color: ${theme.map.nodeUnvisitedText}; border: 1px solid ${theme.map.nodeUnvisitedBorder}; }
+                .map-preview { background: ${theme.colors.background}; border: 1px solid ${theme.colors.border}; border-radius: 8px; padding: 1rem; margin-top: 1.5rem; }
+                .map-title { color: ${theme.colors.text}; font-size: 0.9rem; margin-bottom: 0.75rem; font-weight: 500; }
                 .resources { margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid ${theme.colors.border}; }
                 .resources-title { color: ${theme.colors.textMuted}; font-size: 0.75rem; text-transform: uppercase; margin-bottom: 0.5rem; }
                 .resource-link { display: inline-block; color: ${theme.colors.accentHover}; background: ${theme.colors.accent}15; padding: 0.4rem 0.8rem; border-radius: 4px; font-size: 0.85rem; text-decoration: none; }
@@ -170,16 +165,48 @@
 
                     <div class="map-preview">
                         <div class="map-title">Map Preview</div>
-                        <div class="nodes">
-                            <div class="node node-visited">Start</div>
-                            <div class="node node-current">Current</div>
-                            <div class="node node-unvisited">Future</div>
-                        </div>
+                        <svg width="280" height="200" style="display: block; margin: 0 auto;">
+                            <!-- Connection: Start -> Current (visited) -->
+                            <line x1="140" y1="38" x2="140" y2="72" stroke="${theme.map.lineVisited}" stroke-width="2" />
+                            <polygon points="-6,-4 6,0 -6,4" fill="${theme.map.lineVisited}" transform="translate(140, 55) rotate(90)" />
+                            
+                            <!-- Connection: Current -> Option A (unvisited) -->
+                            <line x1="140" y1="118" x2="80" y2="152" stroke="${theme.map.lineUnvisited}" stroke-width="2" stroke-dasharray="4,4" />
+                            <polygon points="-6,-4 6,0 -6,4" fill="${theme.map.lineUnvisited}" transform="translate(110, 135) rotate(120)" />
+                            
+                            <!-- Connection: Current -> Option B (unvisited) -->
+                            <line x1="140" y1="118" x2="200" y2="152" stroke="${theme.map.lineUnvisited}" stroke-width="2" stroke-dasharray="4,4" />
+                            <polygon points="-6,-4 6,0 -6,4" fill="${theme.map.lineUnvisited}" transform="translate(170, 135) rotate(60)" />
+                            
+                            <!-- Node: Start (visited) -->
+                            <g transform="translate(140, 20)">
+                                <rect x="-40" y="-16" width="80" height="32" rx="6" fill="${theme.map.nodeVisited}" stroke="${theme.map.lineVisited}" stroke-width="2" />
+                                <text x="0" y="1" text-anchor="middle" dominant-baseline="middle" fill="${theme.map.nodeVisitedText}" font-size="11">Start</text>
+                            </g>
+                            
+                            <!-- Node: Current -->
+                            <g transform="translate(140, 95)">
+                                <rect x="-40" y="-16" width="80" height="32" rx="6" fill="${theme.map.nodeCurrent}" stroke="${theme.map.lineVisited}" stroke-width="2" />
+                                <text x="0" y="1" text-anchor="middle" dominant-baseline="middle" fill="${theme.map.nodeCurrentText}" font-size="11" font-weight="bold">Current</text>
+                            </g>
+                            
+                            <!-- Node: Option A (unvisited) -->
+                            <g transform="translate(70, 170)">
+                                <rect x="-40" y="-16" width="80" height="32" rx="6" fill="${theme.map.nodeUnvisited}" stroke="${theme.map.nodeUnvisitedBorder}" stroke-width="2" />
+                                <text x="0" y="1" text-anchor="middle" dominant-baseline="middle" fill="${theme.map.nodeUnvisitedText}" font-size="11">Option A</text>
+                            </g>
+                            
+                            <!-- Node: Option B (unvisited) -->
+                            <g transform="translate(210, 170)">
+                                <rect x="-40" y="-16" width="80" height="32" rx="6" fill="${theme.map.nodeUnvisited}" stroke="${theme.map.nodeUnvisitedBorder}" stroke-width="2" />
+                                <text x="0" y="1" text-anchor="middle" dominant-baseline="middle" fill="${theme.map.nodeUnvisitedText}" font-size="11">Option B</text>
+                            </g>
+                        </svg>
                     </div>
 
                     <div class="resources">
                         <div class="resources-title">Resources</div>
-                        <a href="#" class="resource-link">📎 Download Guide</a>
+                        <span class="resource-link" style="cursor: default;">📎 Download Guide</span>
                     </div>
                 </body>
                 </html>
