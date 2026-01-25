@@ -49,7 +49,7 @@ branching-navigator/
 ├── scenario-workflow.json      # Example: customer support escalation
 ├── scenario-sample.json        # Template: narrative with multiple paths
 ├── start-navigator.bat         # Quick start for navigator (Windows)
-├── start-scenario-editor.bat            # Quick start for editor (Windows)
+├── start-scenario-editor.bat   # Quick start for scenario editor (Windows)
 ├── start-theme-editor.bat      # Quick start for theme editor (Windows)
 ├── README.md                   # This file
 ├── LICENSE                     # MIT License
@@ -374,6 +374,10 @@ Chrome, Firefox, Safari, Edge (all modern versions)
 ## 📄 License
 
 MIT License - see [LICENSE](LICENSE) file for details.
+
+## 📖 Documentation
+
+For a comprehensive guide with screenshots and detailed tutorials, see the **[Branching Navigator Manual](https://docs.ai-know.pro/branching-navigator-en/)** (also available in [Italian](https://docs.ai-know.pro/branching-navigator/)).
 
 ## 👤 Author
 
