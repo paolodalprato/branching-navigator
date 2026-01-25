@@ -49,7 +49,7 @@ branching-navigator/
 ├── scenario-workflow.json      # Example: customer support escalation
 ├── scenario-sample.json        # Template: narrative with multiple paths
 ├── start-navigator.bat         # Quick start for navigator (Windows)
-├── start-editor.bat            # Quick start for editor (Windows)
+├── start-scenario-editor.bat            # Quick start for editor (Windows)
 ├── start-theme-editor.bat      # Quick start for theme editor (Windows)
 ├── README.md                   # This file
 ├── LICENSE                     # MIT License
@@ -62,7 +62,7 @@ branching-navigator/
 ### Option 1: Using Start Scripts (Windows only)
 
 - Double-click `start-navigator.bat` to run the navigator
-- Double-click `start-editor.bat` to run the scenario editor
+- Double-click `start-scenario-editor.bat` to run the scenario editor
 - Double-click `start-theme-editor.bat` to run the theme editor
 
 > **Note for Mac/Linux users**: The `.bat` files are Windows-only. Use Option 2 (manual start) instead — it works on all operating systems.
@@ -165,7 +165,7 @@ http://localhost:8000/theme-editor.html
 
 - **Live Preview**: See changes in real-time as you edit
 - **Company Branding**: Add logo, company name, and website URL
-- **Brand Positioning**: Place logo/name in any corner (top/bottom, left/center/right)
+- **Brand Display**: Logo and company name appear in the header (top right)
 - **Color Customization**: Customize all colors (background, text, buttons, map nodes)
 - **Font Selection**: Choose from 9 font families (System Default + 8 Google Fonts)
 - **Import/Export**: Load and save theme files
@@ -191,8 +191,7 @@ http://localhost:8000/theme-editor.html
     "brand": {
         "name": "Your Company",
         "logo": "https://example.com/logo.png",
-        "website": "https://example.com",
-        "position": { "vertical": "top", "horizontal": "right" }
+        "website": "https://example.com"
     },
     "typography": {
         "fontFamily": "inter"
@@ -371,24 +370,6 @@ For multiple training modules, create separate folders with independent config f
 ### Browser Compatibility
 
 Chrome, Firefox, Safari, Edge (all modern versions)
-
-## 🖼️ Screenshots
-
-### Navigator Interface
-
-![Navigator Interface](images/navigator-demo.png)
-
-### Journey Map
-
-![Journey Map](images/journey-map.png)
-
-### Scenario Editor
-
-![Scenario Editor](images/editor-demo.png)
-
-### Create Node Popup
-
-![Create Node](images/create-node-popup.png)
 
 ## 📄 License
 
