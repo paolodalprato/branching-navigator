@@ -4,6 +4,8 @@
 
 Branching Navigator transforms complex workflows into interactive experiences. Instead of reading a document from start to finish, users navigate through a decision tree where each choice opens a different path. Perfect for process documentation, corporate training, troubleshooting guides, compliance flows, and interactive storytelling.
 
+👉 **[Try the live demo](https://paolodalprato.github.io/branching-navigator/branching-navigator.html)**
+
 ## 📥 Installation
 
 ```bash
