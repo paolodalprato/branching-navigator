@@ -1,16 +1,16 @@
-# Branching Navigator
+# ChoiceMap
 
 **A framework for documenting non-linear processes.**
 
-Branching Navigator transforms complex workflows into interactive experiences. Instead of reading a document from start to finish, users navigate through a decision tree where each choice opens a different path. Perfect for process documentation, corporate training, troubleshooting guides, compliance flows, and interactive storytelling.
+ChoiceMap transforms complex workflows into interactive experiences. Instead of reading a document from start to finish, users navigate through a decision tree where each choice opens a different path. Perfect for process documentation, corporate training, troubleshooting guides, compliance flows, and interactive storytelling.
 
-👉 **[Try the live demo](https://paolodalprato.github.io/branching-navigator/branching-navigator.html)**
+👉 **[Try the live demo](https://paolodalprato.github.io/ChoiceMap/choicemap.html)**
 
 ## 📥 Installation
 
 ```bash
-git clone https://github.com/paolodalprato/branching-navigator.git
-cd branching-navigator
+git clone https://github.com/paolodalprato/ChoiceMap.git
+cd ChoiceMap
 ```
 
 Then start a local server (see [Quick Start](#-quick-start) below).
@@ -42,17 +42,17 @@ Then start a local server (see [Quick Start](#-quick-start) below).
 ## 📁 Project Structure
 
 ```
-branching-navigator/
+ChoiceMap/
 ├── config.json                 # Configuration (scenario + theme files)
 ├── defaults.json               # Shared defaults (fonts, theme fallbacks)
-├── branching-navigator.html    # Main navigator engine
+├── choicemap.html              # Main navigator engine
 ├── scenario-editor.html        # Visual editor for creating scenarios
 ├── theme-editor.html           # Visual editor for customizing themes
 ├── theme.json                  # Theme configuration (colors, branding)
 ├── scenario-quiz.json          # Example: quiz with correct/wrong feedback
 ├── scenario-workflow.json      # Example: customer support escalation
 ├── scenario-sample.json        # Template: narrative with multiple paths
-├── start-navigator.bat         # Quick start for navigator (Windows)
+├── start-choicemap.bat         # Quick start for navigator (Windows)
 ├── start-scenario-editor.bat   # Quick start for scenario editor (Windows)
 ├── start-theme-editor.bat      # Quick start for theme editor (Windows)
 ├── README.md                   # This file
@@ -65,7 +65,7 @@ branching-navigator/
 
 ### Option 1: Using Start Scripts (Windows only)
 
-- Double-click `start-navigator.bat` to run the navigator
+- Double-click `start-choicemap.bat` to run the navigator
 - Double-click `start-scenario-editor.bat` to run the scenario editor
 - Double-click `start-theme-editor.bat` to run the theme editor
 
@@ -80,7 +80,7 @@ branching-navigator/
    ```
    On some systems you may need `python3` instead of `python`.
 3. Open in your browser:
-   - Navigator: `http://localhost:8000/branching-navigator.html`
+   - Navigator: `http://localhost:8000/choicemap.html`
    - Editor: `http://localhost:8000/scenario-editor.html`
 
 ### Option 3: Deploy to Web Server
@@ -292,7 +292,7 @@ You can use relative URLs for local files (logos, PDFs, attachments) instead of 
 
 ```
 your-project/
-├── branching-navigator.html
+├── choicemap.html
 ├── config.json
 ├── scenario.json
 ├── theme.json
@@ -335,7 +335,7 @@ When deploying to a web server, upload the `docs/` folder along with the other f
 1. Push your files to a GitHub repository
 2. Go to Settings → Pages
 3. Select "Deploy from a branch" and choose `main`
-4. Your navigator will be available at `https://username.github.io/repo-name/branching-navigator.html`
+4. Your navigator will be available at `https://username.github.io/repo-name/choicemap.html`
 
 ### Multiple Instances
 
@@ -345,11 +345,11 @@ For multiple training modules, create separate folders with independent config f
 /training-portal/
 ├── onboarding/
 │   ├── config.json
-│   ├── branching-navigator.html
+│   ├── choicemap.html
 │   └── scenario-onboarding.json
 ├── compliance/
 │   ├── config.json
-│   ├── branching-navigator.html
+│   ├── choicemap.html
 │   └── scenario-compliance.json
 ```
 
@@ -357,7 +357,7 @@ For multiple training modules, create separate folders with independent config f
 
 ```html
 <iframe 
-    src="https://your-domain.com/branching-navigator.html" 
+    src="https://your-domain.com/choicemap.html" 
     width="100%" 
     height="600" 
     frameborder="0">
@@ -381,7 +381,7 @@ MIT License - see [LICENSE](LICENSE) file for details.
 
 ## 📖 Documentation
 
-For a comprehensive guide with screenshots and detailed tutorials, see the **[Branching Navigator Manual](https://docs.ai-know.pro/branching-navigator-en/)** (also available in [Italian](https://docs.ai-know.pro/branching-navigator/)).
+For a comprehensive guide with screenshots and detailed tutorials, see the **[ChoiceMap Manual](https://docs.ai-know.pro/choicemap-en/)** (also available in [Italian](https://docs.ai-know.pro/choicemap/)).
 
 ## 👤 Author
 

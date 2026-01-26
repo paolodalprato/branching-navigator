@@ -1,5 +1,5 @@
 @echo off
-echo Starting Branching Navigator...
+echo Starting ChoiceMap...
 echo.
 
 :: Start the Python HTTP server in background
@@ -9,7 +9,7 @@ start /B python -m http.server 8000 > nul 2>&1
 timeout /t 2 /nobreak > nul
 
 :: Open the browser
-start http://localhost:8000/branching-navigator.html
+start http://localhost:8000/choicemap.html
 
 echo Server running at http://localhost:8000
 echo.

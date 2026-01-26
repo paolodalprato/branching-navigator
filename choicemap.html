@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Branching Navigator - Interactive Decision Tree</title>
-    <meta name="description" content="Interactive branching narrative framework for educational and training scenarios">
+    <title>ChoiceMap - Interactive Decision Tree</title>
+    <meta name="description" content="ChoiceMap: A framework for documenting non-linear processes through interactive decision trees">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
@@ -832,9 +832,9 @@
         };
         
         // ============================================================
-        // Main Branching Navigator Component
+        // Main ChoiceMap Component
         // ============================================================
-        const BranchingNavigator = () => {
+        const ChoiceMap = () => {
             const [config, setConfig] = useState(null);
             const [theme, setTheme] = useState(defaultTheme);
             const [scenarioData, setScenarioData] = useState(null);
@@ -1133,7 +1133,7 @@
             );
         };
         
-        ReactDOM.createRoot(document.getElementById('root')).render(<BranchingNavigator />);
+        ReactDOM.createRoot(document.getElementById('root')).render(<ChoiceMap />);
     </script>
 </body>
 </html>
