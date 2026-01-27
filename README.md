@@ -4,7 +4,7 @@
 
 ChoiceMap transforms complex workflows into interactive experiences. Instead of reading a document from start to finish, users navigate through a decision tree where each choice opens a different path. Perfect for process documentation, corporate training, troubleshooting guides, compliance flows, and interactive storytelling.
 
-👉 **[Try the live demo](https://paolodalprato.github.io/ChoiceMap/choicemap.html)**
+👉 **[Try the live demo](https://paolodalprato.github.io/ChoiceMap/navigator.html)**
 
 ## 📥 Installation
 
@@ -45,7 +45,7 @@ Then start a local server (see [Quick Start](#-quick-start) below).
 ChoiceMap/
 ├── config.json                 # Configuration (scenario + theme files)
 ├── defaults.json               # Shared defaults (fonts, theme fallbacks)
-├── choicemap.html              # Main navigator engine
+├── navigator.html              # Main navigator engine
 ├── scenario-editor.html        # Visual editor for creating scenarios
 ├── theme-editor.html           # Visual editor for customizing themes
 ├── theme.json                  # Theme configuration (colors, branding)
@@ -80,7 +80,7 @@ ChoiceMap/
    ```
    On some systems you may need `python3` instead of `python`.
 3. Open in your browser:
-   - Navigator: `http://localhost:8000/choicemap.html`
+   - Navigator: `http://localhost:8000/navigator.html`
    - Editor: `http://localhost:8000/scenario-editor.html`
 
 ### Option 3: Deploy to Web Server
@@ -292,7 +292,7 @@ You can use relative URLs for local files (logos, PDFs, attachments) instead of 
 
 ```
 your-project/
-├── choicemap.html
+├── navigator.html
 ├── config.json
 ├── scenario.json
 ├── theme.json
@@ -335,7 +335,7 @@ When deploying to a web server, upload the `docs/` folder along with the other f
 1. Push your files to a GitHub repository
 2. Go to Settings → Pages
 3. Select "Deploy from a branch" and choose `main`
-4. Your navigator will be available at `https://username.github.io/repo-name/choicemap.html`
+4. Your navigator will be available at `https://username.github.io/repo-name/navigator.html`
 
 ### Multiple Instances
 
@@ -345,11 +345,11 @@ For multiple training modules, create separate folders with independent config f
 /training-portal/
 ├── onboarding/
 │   ├── config.json
-│   ├── choicemap.html
+│   ├── navigator.html
 │   └── scenario-onboarding.json
 ├── compliance/
 │   ├── config.json
-│   ├── choicemap.html
+│   ├── navigator.html
 │   └── scenario-compliance.json
 ```
 
@@ -357,7 +357,7 @@ For multiple training modules, create separate folders with independent config f
 
 ```html
 <iframe 
-    src="https://your-domain.com/choicemap.html" 
+    src="https://your-domain.com/navigator.html" 
     width="100%" 
     height="600" 
     frameborder="0">

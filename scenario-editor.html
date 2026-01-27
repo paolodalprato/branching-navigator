@@ -295,6 +295,8 @@
                                 toId: choice.next,
                                 fromLevel,
                                 toLevel,
+                                isLoop: toLevel < fromLevel,
+                                isSameLevel: toLevel === fromLevel,
                                 key: `${nodeId}-${choice.next}-${idx}`
                             }); 
                         }
@@ -312,21 +314,19 @@
                 const x2 = conn.to.x;
                 const y2 = conn.to.y - nodeHeight / 2;
 
-                // Check if it's a backward connection based on Y position (more reliable than level)
-                const isBackward = conn.to.y < conn.from.y;
-                const isSameLevel = Math.abs(conn.to.y - conn.from.y) < nodeHeight;
-
-                // Forward connection - straight line
-                if (!isBackward && !isSameLevel) {
+                // Forward connection (not a loop, not same level) - straight line
+                if (!conn.isLoop && !conn.isSameLevel) {
                     return { path: `M ${x1} ${y1} L ${x2} ${y2}`, type: 'line', x1, y1, x2, y2 };
                 }
 
-                // Same level or backward (loop) - curved arc
+                // Loop or same level - curved arc
                 const midX = (x1 + x2) / 2;
                 const midY = (y1 + y2) / 2;
 
+                // For curve direction, use visual position
+                const visuallyBackward = conn.to.y < conn.from.y;
                 let curveOffset;
-                if (isBackward) {
+                if (conn.isLoop) {
                     const yDiff = Math.abs(conn.from.y - conn.to.y);
                     curveOffset = Math.max(80, yDiff * 0.3 + 60);
                 } else {
@@ -334,8 +334,8 @@
                 }
 
                 const curveDirection = x1 <= x2 ? 1 : -1;
-                const controlX = midX + (curveOffset * curveDirection * (isBackward ? 1.5 : 1));
-                const controlY = isBackward ? Math.min(y1, y2) - 30 : midY;
+                const controlX = midX + (curveOffset * curveDirection * (conn.isLoop ? 1.5 : 1));
+                const controlY = visuallyBackward ? Math.min(y1, y2) - 30 : midY;
 
                 return { path: `M ${x1} ${y1} Q ${controlX} ${controlY} ${x2} ${y2}`, type: 'bezier', x1, y1, x2, y2, cx: controlX, cy: controlY };
             };
@@ -358,13 +358,11 @@
                 }
             };
             
-            // Get connection color based on type
+            // Get connection color based on logical structure
             const getConnectionColor = (conn, isSelected, isHovered) => {
                 if (isSelected || isHovered) return '#6366f1';
-                const isBackward = conn.to.y < conn.from.y;
-                const isSameLevel = Math.abs(conn.to.y - conn.from.y) < nodeHeight;
-                if (isBackward) return '#f59e0b'; // backward/loop - amber
-                if (isSameLevel) return '#8b5cf6'; // same level - purple
+                if (conn.isLoop) return '#f59e0b'; // logical loop (to ancestor) - amber
+                if (conn.isSameLevel) return '#8b5cf6'; // same logical level - purple
                 return '#d1d5db'; // forward - gray
             };
             

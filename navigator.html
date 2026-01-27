@@ -263,11 +263,38 @@
             };
 
             const connections = [];
+            // Calculate logical levels for loop detection
+            const nodeLevels = {};
+            const visited = new Set();
+            const queue = [{ id: scenarioData.startNode, level: 0 }];
+            while (queue.length > 0) {
+                const { id, level } = queue.shift();
+                if (visited.has(id) || !nodes[id]) continue;
+                visited.add(id);
+                nodeLevels[id] = level;
+                (nodes[id].choices || []).forEach(choice => {
+                    if (choice.next && !visited.has(choice.next)) queue.push({ id: choice.next, level: level + 1 });
+                });
+            }
+            
             Object.entries(nodes).forEach(([nodeId, node]) => {
                 if (node.choices && nodePositions[nodeId]) {
                     node.choices.forEach((choice, idx) => {
                         if (choice.next && nodePositions[choice.next]) {
-                            connections.push({ from: nodePositions[nodeId], to: nodePositions[choice.next], fromId: nodeId, toId: choice.next, visited: visitedNodes.has(nodeId) && visitedNodes.has(choice.next), key: `${nodeId}-${choice.next}-${idx}` });
+                            const fromLevel = nodeLevels[nodeId] ?? 0;
+                            const toLevel = nodeLevels[choice.next] ?? 0;
+                            connections.push({ 
+                                from: nodePositions[nodeId], 
+                                to: nodePositions[choice.next], 
+                                fromId: nodeId, 
+                                toId: choice.next, 
+                                fromLevel,
+                                toLevel,
+                                isLoop: toLevel < fromLevel,
+                                isSameLevel: toLevel === fromLevel,
+                                visited: visitedNodes.has(nodeId) && visitedNodes.has(choice.next), 
+                                key: `${nodeId}-${choice.next}-${idx}` 
+                            });
                         }
                     });
                 }
@@ -284,14 +311,15 @@
 
             const getConnectionPath = (conn) => {
                 const x1 = conn.from.x, y1 = conn.from.y + nodeHeight / 2, x2 = conn.to.x, y2 = conn.to.y - nodeHeight / 2;
-                const isBackward = conn.to.y < conn.from.y;
-                const isSameLevel = Math.abs(conn.to.y - conn.from.y) < nodeHeight;
-                if (!isBackward && !isSameLevel) return { path: `M ${x1} ${y1} L ${x2} ${y2}`, type: 'line', x1, y1, x2, y2 };
+                // Use logical structure for path type, not visual position
+                if (!conn.isLoop && !conn.isSameLevel) return { path: `M ${x1} ${y1} L ${x2} ${y2}`, type: 'line', x1, y1, x2, y2 };
                 const midX = (x1 + x2) / 2, midY = (y1 + y2) / 2;
-                const curveOffset = isBackward ? Math.max(80, Math.abs(conn.from.y - conn.to.y) * 0.3 + 60) : 50;
+                // For loops, curve goes above; direction depends on visual position
+                const visuallyBackward = conn.to.y < conn.from.y;
+                const curveOffset = conn.isLoop ? Math.max(80, Math.abs(conn.from.y - conn.to.y) * 0.3 + 60) : 50;
                 const curveDirection = x1 <= x2 ? 1 : -1;
-                const controlX = midX + (curveOffset * curveDirection * (isBackward ? 1.5 : 1));
-                const controlY = isBackward ? Math.min(y1, y2) - 30 : midY;
+                const controlX = midX + (curveOffset * curveDirection * (conn.isLoop ? 1.5 : 1));
+                const controlY = visuallyBackward ? Math.min(y1, y2) - 30 : midY;
                 return { path: `M ${x1} ${y1} Q ${controlX} ${controlY} ${x2} ${y2}`, type: 'bezier', x1, y1, x2, y2, cx: controlX, cy: controlY };
             };
 

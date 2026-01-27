@@ -9,7 +9,7 @@ start /B python -m http.server 8000 > nul 2>&1
 timeout /t 2 /nobreak > nul
 
 :: Open the browser
-start http://localhost:8000/choicemap.html
+start http://localhost:8000/navigator.html
 
 echo Server running at http://localhost:8000
 echo.
