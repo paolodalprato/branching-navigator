@@ -52,13 +52,17 @@
         .legend-selected { border-color: #818cf8; background: #3730a3; }
         .legend-orphan { border-color: #ef4444; background: #7f1d1d; }
         .map-overlay-content { flex: 1; overflow: auto; display: flex; align-items: center; justify-content: center; padding: 2rem; }
+        .map-toolbar { display: flex; gap: 0.5rem; align-items: center; }
+        .map-toolbar .btn { padding: 0.4rem 0.8rem; font-size: 0.8rem; }
+        .draggable-node { cursor: pointer; }
+        .draggable-node.dragging { cursor: grabbing; opacity: 0.8; }
     </style>
 </head>
 <body>
     <div id="root"></div>
     
     <script type="text/babel">
-        const { useState, useEffect, useRef } = React;
+        const { useState, useEffect, useRef, useCallback } = React;
 
         // ============================================================
         // DEFAULT DATA (loaded from defaults.json)
@@ -111,32 +115,177 @@
             }
             return { level: 0, position: 1 };
         };
-        
-        // ============================================================
-        // TREE MAP OVERLAY COMPONENT
-        // ============================================================
-        const TreeMapOverlay = ({ nodes, startNode, selectedNode, onSelectNode, onClose, fileName }) => {
-            const [selectedConnection, setSelectedConnection] = useState(null);
+
+        // Calculate automatic positions for nodes without saved positions
+        const calculateAutoPositions = (nodes, startNode) => {
             const levels = calculateNodeLevels(nodes, startNode);
             const maxLevel = Math.max(...Object.keys(levels).map(Number), 1);
-            const { levelHeight, nodeWidth, nodeHeight, padding } = layoutConfig;
+            const { levelHeight, nodeWidth, padding } = layoutConfig;
             const positions = {};
+            
             let maxWidth = 0;
-            Object.entries(levels).forEach(([level, nodeIds]) => { maxWidth = Math.max(maxWidth, nodeIds.length * nodeWidth); });
+            Object.entries(levels).forEach(([level, nodeIds]) => { 
+                maxWidth = Math.max(maxWidth, nodeIds.length * nodeWidth); 
+            });
+            
             Object.entries(levels).forEach(([level, nodeIds]) => {
                 const totalWidth = nodeIds.length * nodeWidth;
                 const startX = (maxWidth - totalWidth) / 2 + nodeWidth / 2;
-                nodeIds.forEach((nodeId, index) => { positions[nodeId] = { x: startX + index * nodeWidth + padding, y: parseInt(level) * levelHeight + padding }; });
+                nodeIds.forEach((nodeId, index) => { 
+                    positions[nodeId] = { 
+                        x: startX + index * nodeWidth + padding, 
+                        y: parseInt(level) * levelHeight + padding 
+                    }; 
+                });
             });
             
+            return { positions, maxWidth, maxLevel };
+        };
+        
+        // ============================================================
+        // INTERACTIVE TREE MAP OVERLAY COMPONENT
+        // ============================================================
+        const TreeMapOverlay = ({ nodes, startNode, selectedNode, onSelectNode, onClose, fileName, onUpdateNodePosition }) => {
+            const [selectedConnection, setSelectedConnection] = useState(null);
+            const [draggingNode, setDraggingNode] = useState(null);
+            const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+            const [nodePositions, setNodePositions] = useState({});
+            const [svgSize, setSvgSize] = useState({ width: 800, height: 600 });
+            const svgRef = useRef(null);
+
+            const { nodeWidth, nodeHeight, padding } = layoutConfig;
+
+            // Initialize positions from nodes or calculate auto positions
+            useEffect(() => {
+                const autoLayout = calculateAutoPositions(nodes, startNode);
+                const positions = {};
+                
+                Object.keys(nodes).forEach(nodeId => {
+                    // Use saved position if available, otherwise use auto-calculated
+                    if (nodes[nodeId].position) {
+                        positions[nodeId] = { ...nodes[nodeId].position };
+                    } else {
+                        positions[nodeId] = autoLayout.positions[nodeId] || { x: padding, y: padding };
+                    }
+                });
+                
+                setNodePositions(positions);
+                
+                // Calculate SVG size based on node positions
+                const allX = Object.values(positions).map(p => p.x);
+                const allY = Object.values(positions).map(p => p.y);
+                const maxX = Math.max(...allX, 400) + nodeWidth + padding;
+                const maxY = Math.max(...allY, 300) + nodeHeight + padding;
+                setSvgSize({ width: maxX, height: maxY });
+            }, [nodes, startNode]);
+
+            // Mouse event handlers for dragging (CTRL + drag to move)
+            const handleMouseDown = (e, nodeId) => {
+                if (e.button !== 0) return; // Only left click
+                
+                // Only start drag if CTRL (or CMD on Mac) is held
+                if (!e.ctrlKey && !e.metaKey) return;
+                
+                e.stopPropagation();
+                e.preventDefault();
+                
+                const svg = svgRef.current;
+                const pt = svg.createSVGPoint();
+                pt.x = e.clientX;
+                pt.y = e.clientY;
+                const svgP = pt.matrixTransform(svg.getScreenCTM().inverse());
+                
+                const nodePos = nodePositions[nodeId];
+                setDragOffset({
+                    x: svgP.x - nodePos.x,
+                    y: svgP.y - nodePos.y
+                });
+                setDraggingNode(nodeId);
+            };
+
+            // Click handler (without CTRL) - select node and close map
+            const handleNodeClick = (e, nodeId) => {
+                // If CTRL is held or we're dragging, don't handle as click
+                if (e.ctrlKey || e.metaKey || draggingNode) return;
+                
+                onSelectNode(nodeId);
+                onClose();
+            };
+
+            const handleMouseMove = useCallback((e) => {
+                if (!draggingNode) return;
+                
+                const svg = svgRef.current;
+                if (!svg) return;
+                
+                const pt = svg.createSVGPoint();
+                pt.x = e.clientX;
+                pt.y = e.clientY;
+                const svgP = pt.matrixTransform(svg.getScreenCTM().inverse());
+                
+                const newX = Math.max(nodeWidth/2, svgP.x - dragOffset.x);
+                const newY = Math.max(nodeHeight/2, svgP.y - dragOffset.y);
+                
+                setNodePositions(prev => ({
+                    ...prev,
+                    [draggingNode]: { x: newX, y: newY }
+                }));
+                
+                // Update SVG size if node is dragged beyond current bounds
+                setSvgSize(prev => ({
+                    width: Math.max(prev.width, newX + nodeWidth + padding),
+                    height: Math.max(prev.height, newY + nodeHeight + padding)
+                }));
+            }, [draggingNode, dragOffset, nodeWidth, nodeHeight, padding]);
+
+            const handleMouseUp = useCallback(() => {
+                if (draggingNode && onUpdateNodePosition) {
+                    // Save the new position
+                    onUpdateNodePosition(draggingNode, nodePositions[draggingNode]);
+                }
+                setDraggingNode(null);
+            }, [draggingNode, nodePositions, onUpdateNodePosition]);
+
+            // Add global mouse event listeners for drag
+            useEffect(() => {
+                if (draggingNode) {
+                    window.addEventListener('mousemove', handleMouseMove);
+                    window.addEventListener('mouseup', handleMouseUp);
+                    return () => {
+                        window.removeEventListener('mousemove', handleMouseMove);
+                        window.removeEventListener('mouseup', handleMouseUp);
+                    };
+                }
+            }, [draggingNode, handleMouseMove, handleMouseUp]);
+
+            // Reset all positions to auto-layout
+            const handleResetLayout = () => {
+                const autoLayout = calculateAutoPositions(nodes, startNode);
+                setNodePositions(autoLayout.positions);
+                
+                // Save all reset positions
+                if (onUpdateNodePosition) {
+                    Object.entries(autoLayout.positions).forEach(([nodeId, pos]) => {
+                        onUpdateNodePosition(nodeId, pos);
+                    });
+                }
+                
+                const allX = Object.values(autoLayout.positions).map(p => p.x);
+                const allY = Object.values(autoLayout.positions).map(p => p.y);
+                setSvgSize({
+                    width: Math.max(...allX, 400) + nodeWidth + padding,
+                    height: Math.max(...allY, 300) + nodeHeight + padding
+                });
+            };
+
             // Build connections with metadata
             const connections = [];
             Object.entries(nodes).forEach(([nodeId, node]) => {
-                if (node.choices && positions[nodeId]) {
+                if (node.choices && nodePositions[nodeId]) {
                     node.choices.forEach((choice, idx) => { 
-                        if (choice.next && positions[choice.next]) {
-                            const fromPos = positions[nodeId];
-                            const toPos = positions[choice.next];
+                        if (choice.next && nodePositions[choice.next]) {
+                            const fromPos = nodePositions[nodeId];
+                            const toPos = nodePositions[choice.next];
                             const fromLevel = getNodeLevel(nodeId, nodes, startNode).level;
                             const toLevel = getNodeLevel(choice.next, nodes, startNode).level;
                             connections.push({ 
@@ -163,28 +312,27 @@
                 const x2 = conn.to.x;
                 const y2 = conn.to.y - nodeHeight / 2;
 
-                // Forward connection (to lower level) - straight line
-                if (conn.toLevel > conn.fromLevel) {
+                // Check if it's a backward connection based on Y position (more reliable than level)
+                const isBackward = conn.to.y < conn.from.y;
+                const isSameLevel = Math.abs(conn.to.y - conn.from.y) < nodeHeight;
+
+                // Forward connection - straight line
+                if (!isBackward && !isSameLevel) {
                     return { path: `M ${x1} ${y1} L ${x2} ${y2}`, type: 'line', x1, y1, x2, y2 };
                 }
 
                 // Same level or backward (loop) - curved arc
-                const isBackward = conn.toLevel < conn.fromLevel;
-
-                // Calculate control point for quadratic bezier
                 const midX = (x1 + x2) / 2;
                 const midY = (y1 + y2) / 2;
 
-                // Offset for the curve - more pronounced for backward connections
                 let curveOffset;
                 if (isBackward) {
-                    const levelDiff = conn.fromLevel - conn.toLevel;
-                    curveOffset = Math.max(80, levelDiff * 40 + 60);
+                    const yDiff = Math.abs(conn.from.y - conn.to.y);
+                    curveOffset = Math.max(80, yDiff * 0.3 + 60);
                 } else {
                     curveOffset = 50;
                 }
 
-                // Determine curve direction based on relative positions
                 const curveDirection = x1 <= x2 ? 1 : -1;
                 const controlX = midX + (curveOffset * curveDirection * (isBackward ? 1.5 : 1));
                 const controlY = isBackward ? Math.min(y1, y2) - 30 : midY;
@@ -195,17 +343,14 @@
             // Calculate midpoint and angle for arrow placement
             const getArrowPosition = (pathData) => {
                 if (pathData.type === 'line') {
-                    // Midpoint of straight line
                     const mx = (pathData.x1 + pathData.x2) / 2;
                     const my = (pathData.y1 + pathData.y2) / 2;
                     const angle = Math.atan2(pathData.y2 - pathData.y1, pathData.x2 - pathData.x1) * 180 / Math.PI;
                     return { x: mx, y: my, angle };
                 } else {
-                    // Midpoint of quadratic bezier at t=0.5
                     const t = 0.5;
                     const mx = (1-t)*(1-t)*pathData.x1 + 2*(1-t)*t*pathData.cx + t*t*pathData.x2;
                     const my = (1-t)*(1-t)*pathData.y1 + 2*(1-t)*t*pathData.cy + t*t*pathData.y2;
-                    // Tangent at t=0.5: derivative of bezier
                     const tx = 2*(1-t)*(pathData.cx - pathData.x1) + 2*t*(pathData.x2 - pathData.cx);
                     const ty = 2*(1-t)*(pathData.cy - pathData.y1) + 2*t*(pathData.y2 - pathData.cy);
                     const angle = Math.atan2(ty, tx) * 180 / Math.PI;
@@ -216,8 +361,10 @@
             // Get connection color based on type
             const getConnectionColor = (conn, isSelected, isHovered) => {
                 if (isSelected || isHovered) return '#6366f1';
-                if (conn.toLevel < conn.fromLevel) return '#f59e0b'; // backward/loop - amber
-                if (conn.toLevel === conn.fromLevel) return '#8b5cf6'; // same level - purple
+                const isBackward = conn.to.y < conn.from.y;
+                const isSameLevel = Math.abs(conn.to.y - conn.from.y) < nodeHeight;
+                if (isBackward) return '#f59e0b'; // backward/loop - amber
+                if (isSameLevel) return '#8b5cf6'; // same level - purple
                 return '#d1d5db'; // forward - gray
             };
             
@@ -231,10 +378,20 @@
                             <span><span className="legend-dot legend-selected"></span> Selected</span>
                             <span><span className="legend-dot legend-orphan"></span> Orphan</span>
                         </div>
-                        <button className="btn btn-close" onClick={onClose}>X</button>
+                        <div className="map-toolbar">
+                            <button className="btn btn-secondary" onClick={handleResetLayout} title="Reset to automatic layout">
+                                ↻ Auto Layout
+                            </button>
+                            <button className="btn btn-close" onClick={onClose}>X</button>
+                        </div>
                     </div>
                     <div className="map-overlay-content">
-                        <svg width={Math.max(maxWidth + padding * 2 + 100, 400)} height={Math.max((maxLevel + 1) * levelHeight + padding, 300)} style={{ display: 'block', margin: 'auto' }}>
+                        <svg 
+                            ref={svgRef}
+                            width={svgSize.width} 
+                            height={svgSize.height} 
+                            style={{ display: 'block', margin: 'auto', cursor: draggingNode ? 'grabbing' : 'default' }}
+                        >
                             {/* Connections with midpoint arrows */}
                             {connections.map((conn) => {
                                 const isSelected = selectedConnection === conn.key;
@@ -288,23 +445,72 @@
                                 );
                             })}
                             
-                            {/* Nodes */}
-                            {Object.entries(positions).map(([nodeId, pos]) => {
-                                const isSelected = nodeId === selectedNode, isStart = nodeId === startNode, isEnd = isTerminal(nodeId), orphan = isOrphan(nodeId);
+                            {/* Nodes - click to select, CTRL+drag to move */}
+                            {Object.entries(nodePositions).map(([nodeId, pos]) => {
+                                if (!nodes[nodeId]) return null;
+                                const isSelected = nodeId === selectedNode;
+                                const isStart = nodeId === startNode;
+                                const isEnd = isTerminal(nodeId);
+                                const orphan = isOrphan(nodeId);
+                                const isDragging = draggingNode === nodeId;
+                                
                                 let fill = '#f3f4f6', stroke = '#9ca3af', sw = 2, textFill = '#374151';
                                 if (isSelected) { fill = '#e0e7ff'; stroke = '#818cf8'; sw = 3; textFill = '#3730a3'; }
                                 if (isStart) stroke = '#10b981'; else if (orphan) stroke = '#ef4444'; else if (isEnd) stroke = '#f59e0b';
+                                
                                 const content = nodes[nodeId]?.content || '';
                                 const title = content.match(/^#\s+(.+)$/m)?.[1]?.slice(0, 15) || nodeId;
+                                
                                 return (
-                                    <g key={nodeId} style={{ cursor: 'pointer' }} onClick={() => { onSelectNode(nodeId); onClose(); }}>
-                                        <rect x={pos.x - nodeWidth/2 + 10} y={pos.y - nodeHeight/2} width={nodeWidth - 20} height={nodeHeight} rx={8} fill={fill} stroke={stroke} strokeWidth={sw} />
-                                        <text x={pos.x} y={pos.y - 6} textAnchor="middle" dominantBaseline="middle" fill={textFill} fontSize="11" fontWeight="500">{title.length > 15 ? title.slice(0, 12) + '...' : title}</text>
-                                        <text x={pos.x} y={pos.y + 10} textAnchor="middle" dominantBaseline="middle" fill="#6b7280" fontSize="9" fontFamily="monospace">{nodeId.length > 14 ? nodeId.slice(0, 12) + '..' : nodeId}</text>
+                                    <g 
+                                        key={nodeId} 
+                                        className={`draggable-node ${isDragging ? 'dragging' : ''}`}
+                                        style={{ cursor: isDragging ? 'grabbing' : 'pointer' }}
+                                        onMouseDown={(e) => handleMouseDown(e, nodeId)}
+                                        onClick={(e) => handleNodeClick(e, nodeId)}
+                                    >
+                                        <rect 
+                                            x={pos.x - nodeWidth/2 + 10} 
+                                            y={pos.y - nodeHeight/2} 
+                                            width={nodeWidth - 20} 
+                                            height={nodeHeight} 
+                                            rx={8} 
+                                            fill={fill} 
+                                            stroke={stroke} 
+                                            strokeWidth={sw}
+                                            style={{ filter: isDragging ? 'drop-shadow(0 4px 6px rgba(0,0,0,0.2))' : 'none' }}
+                                        />
+                                        <text 
+                                            x={pos.x} 
+                                            y={pos.y - 6} 
+                                            textAnchor="middle" 
+                                            dominantBaseline="middle" 
+                                            fill={textFill} 
+                                            fontSize="11" 
+                                            fontWeight="500"
+                                            style={{ pointerEvents: 'none', userSelect: 'none' }}
+                                        >
+                                            {title.length > 15 ? title.slice(0, 12) + '...' : title}
+                                        </text>
+                                        <text 
+                                            x={pos.x} 
+                                            y={pos.y + 10} 
+                                            textAnchor="middle" 
+                                            dominantBaseline="middle" 
+                                            fill="#6b7280" 
+                                            fontSize="9" 
+                                            fontFamily="monospace"
+                                            style={{ pointerEvents: 'none', userSelect: 'none' }}
+                                        >
+                                            {nodeId.length > 14 ? nodeId.slice(0, 12) + '..' : nodeId}
+                                        </text>
                                     </g>
                                 );
                             })}
                         </svg>
+                    </div>
+                    <div style={{ padding: '0.75rem 1.5rem', borderTop: '1px solid #e5e7eb', background: '#f9fafb', fontSize: '0.8rem', color: '#6b7280' }}>
+                        💡 Click to edit • CTRL+drag to reposition • Positions are saved automatically
                     </div>
                 </div>
             );
@@ -850,6 +1056,21 @@
             }, []);
             
             const nodeIds = Object.keys(scenario.nodes);
+
+            // Handler for updating node position from the map
+            const handleUpdateNodePosition = (nodeId, position) => {
+                setScenario(prev => ({
+                    ...prev,
+                    nodes: {
+                        ...prev.nodes,
+                        [nodeId]: {
+                            ...prev.nodes[nodeId],
+                            position: { x: Math.round(position.x), y: Math.round(position.y) }
+                        }
+                    }
+                }));
+                setHasChanges(true);
+            };
             
             const handleLoad = (e) => {
                 const file = e.target.files[0];
@@ -953,7 +1174,17 @@
                     
                     {showMetaEditor && <MetaEditor meta={scenario.meta} translations={scenario.translations || {}} onUpdate={handleUpdateMeta} onClose={() => setShowMetaEditor(false)} />}
                     
-                    {showMap && <TreeMapOverlay nodes={scenario.nodes} startNode={scenario.startNode} selectedNode={selectedNode} onSelectNode={setSelectedNode} onClose={() => setShowMap(false)} fileName={fileName} />}
+                    {showMap && (
+                        <TreeMapOverlay 
+                            nodes={scenario.nodes} 
+                            startNode={scenario.startNode} 
+                            selectedNode={selectedNode} 
+                            onSelectNode={setSelectedNode} 
+                            onClose={() => setShowMap(false)} 
+                            fileName={fileName}
+                            onUpdateNodePosition={handleUpdateNodePosition}
+                        />
+                    )}
 
                     <div className="credits">
                         Created by <a href="https://ai-know.pro" target="_blank" rel="noopener noreferrer">Paolo Dalprato</a>

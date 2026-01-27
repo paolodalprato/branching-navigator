@@ -1,0 +1,225 @@
+{
+    "meta": {
+        "title": "Timballo di Maccheroni",
+        "description": "Ricetta classica ispirata a Pellegrino Artusi – per 4 persone",
+        "author": "Paolo Dalprato"
+    },
+    "translations": {
+        "step": "Passo",
+        "restart": "Ricomincia",
+        "endOfPath": "Fine di questo percorso",
+        "resources": "Risorse",
+        "viewMap": "Vedi mappa",
+        "mapOf": "Mappa di",
+        "back": "Indietro",
+        "download": "Scarica",
+        "openLink": "Apri",
+        "watchVideo": "Guarda"
+    },
+    "startNode": "intro",
+    "nodes": {
+        "intro": {
+            "content": "# Timballo di Maccheroni\n\n*Ricetta classica ispirata a Pellegrino Artusi*\n\nIl timballo è un piatto ricco che richiede più preparazioni parallele:\n\n- **Pasta**: maccheroni cotti al dente\n- **Ripieno**: ragù, besciamella e complementi\n- **Stampo**: preparato per la cottura\n\nQuando tutto è pronto, si assembla e si cuoce in forno.\n\n*Puoi preparare i componenti nell'ordine che preferisci.*",
+            "choices": [
+                {
+                    "text": "Iniziamo",
+                    "next": "hub_main"
+                }
+            ],
+            "resources": []
+        },
+        "hub_main": {
+            "content": "# Cosa vuoi preparare?\n\nScegli una preparazione da completare.\n\nQuando hai completato tutte le preparazioni, procedi con l'assemblaggio.",
+            "choices": [
+                {
+                    "text": "🍝 Pasta",
+                    "next": "pasta_ing"
+                },
+                {
+                    "text": "🍖 Ripieno",
+                    "next": "hub_ripieno"
+                },
+                {
+                    "text": "🍳 Stampo",
+                    "next": "stampo_ing"
+                },
+                {
+                    "text": "✅ Assembla",
+                    "next": "assembla_verifica"
+                }
+            ],
+            "resources": []
+        },
+        "pasta_ing": {
+            "content": "# Pasta – Ingredienti\n\n- Maccheroni o altra pasta corta: **350 g**\n- Burro: **30 g**\n- Sale per l'acqua: q.b.",
+            "choices": [
+                {
+                    "text": "Procedimento",
+                    "next": "pasta_proc"
+                }
+            ],
+            "resources": []
+        },
+        "pasta_proc": {
+            "content": "# Pasta – Procedimento\n\n1. Porta a ebollizione abbondante acqua salata\n2. Cuoci i maccheroni **molto al dente** (togli 2-3 minuti dal tempo indicato)\n3. Scola e condisci subito con il burro\n4. Mescola bene e lascia intiepidire\n\n*La pasta finirà di cuocere in forno.*\n\n---\n✅ **Pasta pronta!**",
+            "choices": [
+                {
+                    "text": "Torna al menu",
+                    "next": "hub_main"
+                }
+            ],
+            "resources": []
+        },
+        "hub_ripieno": {
+            "content": "# Ripieno\n\nIl ripieno ha tre componenti da preparare separatamente:\n\n- **Ragù**: la base saporita\n- **Besciamella**: il legante cremoso\n- **Complementi**: funghi e formaggi\n\nQuando tutti sono pronti, si uniscono.",
+            "choices": [
+                {
+                    "text": "🥩 Ragù",
+                    "next": "ragu_ing"
+                },
+                {
+                    "text": "🥛 Besciamella",
+                    "next": "besciamella_ing"
+                },
+                {
+                    "text": "🧀 Complementi",
+                    "next": "complementi_ing"
+                },
+                {
+                    "text": "🥄 Unisci il ripieno",
+                    "next": "ripieno_unisci"
+                }
+            ],
+            "resources": []
+        },
+        "ragu_ing": {
+            "content": "# Ragù – Ingredienti\n\n- Carne di vitello (polpa o macinata grossa): **200 g**\n- Cipolla: **1 piccola** (~60 g)\n- Carota: **½** (~40 g)\n- Sedano: **½ costa**\n- Burro: **30 g**\n- Brodo: **½ bicchiere** (~100 ml)\n- Sale e pepe: q.b.",
+            "choices": [
+                {
+                    "text": "Procedimento",
+                    "next": "ragu_proc"
+                }
+            ],
+            "resources": []
+        },
+        "ragu_proc": {
+            "content": "# Ragù – Procedimento\n\n1. Trita finemente cipolla, carota e sedano\n2. Fai soffriggere dolcemente nel burro per 5-7 minuti\n3. Aggiungi la carne e rosola a fuoco vivace\n4. Bagna con il brodo\n5. Abbassa la fiamma e cuoci lentamente per 30-40 minuti\n6. Il ragù è pronto quando l'intingolo si è ristretto\n\n---\n✅ **Ragù pronto!**",
+            "choices": [
+                {
+                    "text": "Torna al ripieno",
+                    "next": "hub_ripieno"
+                }
+            ],
+            "resources": []
+        },
+        "besciamella_ing": {
+            "content": "# Besciamella – Ingredienti\n\n- Burro: **40 g**\n- Farina: **40 g**\n- Latte intero: **500 ml**\n- Sale: q.b.\n- Noce moscata: un pizzico",
+            "choices": [
+                {
+                    "text": "Procedimento",
+                    "next": "besciamella_proc"
+                }
+            ],
+            "resources": []
+        },
+        "besciamella_proc": {
+            "content": "# Besciamella – Procedimento\n\n1. Scalda il burro in una casseruola\n2. Aggiungi la farina e mescola con una frusta\n3. Cuoci il roux per 1-2 minuti senza farlo colorire\n4. Versa il latte caldo a filo, mescolando continuamente\n5. Continua a mescolare finché la salsa si addensa\n6. Aggiusta di sale e noce moscata\n\n*La consistenza deve essere cremosa ma non troppo densa.*\n\n---\n✅ **Besciamella pronta!**",
+            "choices": [
+                {
+                    "text": "Torna al ripieno",
+                    "next": "hub_ripieno"
+                }
+            ],
+            "resources": []
+        },
+        "complementi_ing": {
+            "content": "# Complementi – Ingredienti\n\nScegli uno o combina in piccola quantità:\n\n- Funghi (freschi o secchi rinvenuti): **100 g**\n- Parmigiano o grana grattugiato: **60 g**\n- Avanzi di arrosto o prosciutto cotto: **50-80 g** *(opzionale)*",
+            "choices": [
+                {
+                    "text": "Procedimento",
+                    "next": "complementi_proc"
+                }
+            ],
+            "resources": []
+        },
+        "complementi_proc": {
+            "content": "# Complementi – Procedimento\n\n1. Se usi funghi: puliscili e affettali, saltali brevemente in padella con un po' di burro\n2. Grattugia il formaggio\n3. Se usi avanzi di carne: tagliali a dadini\n\n---\n✅ **Complementi pronti!**",
+            "choices": [
+                {
+                    "text": "Torna al ripieno",
+                    "next": "hub_ripieno"
+                }
+            ],
+            "resources": []
+        },
+        "ripieno_unisci": {
+            "content": "# Unisci il ripieno\n\nAssicurati di aver preparato:\n- ✓ Ragù\n- ✓ Besciamella\n- ✓ Complementi\n\n**Procedimento:**\n\n1. In una ciotola capiente, unisci il ragù e la besciamella\n2. Aggiungi i complementi (funghi, formaggi)\n3. Mescola delicatamente fino a ottenere un composto omogeneo\n4. Assaggia e aggiusta di sale se necessario\n\n---\n✅ **Ripieno completo!**",
+            "choices": [
+                {
+                    "text": "Torna al menu",
+                    "next": "hub_main"
+                }
+            ],
+            "resources": []
+        },
+        "stampo_ing": {
+            "content": "# Stampo – Ingredienti\n\n- Burro: **20 g**\n- Pangrattato: **2 cucchiai colmi**",
+            "choices": [
+                {
+                    "text": "Procedimento",
+                    "next": "stampo_proc"
+                }
+            ],
+            "resources": []
+        },
+        "stampo_proc": {
+            "content": "# Stampo – Procedimento\n\n1. Ungi bene tutto l'interno dello stampo con il burro\n2. Aggiungi il pangrattato\n3. Ruota lo stampo per distribuirlo uniformemente su fondo e pareti\n4. Elimina l'eccesso capovolgendo e battendo leggermente\n\n*Usa uno stampo a cerniera o a pareti alte, circa 24-26 cm di diametro.*\n\n---\n✅ **Stampo pronto!**",
+            "choices": [
+                {
+                    "text": "Torna al menu",
+                    "next": "hub_main"
+                }
+            ],
+            "resources": []
+        },
+        "assembla_verifica": {
+            "content": "# Assemblaggio\n\nPrima di procedere, verifica di aver completato:\n\n- ✓ Pasta (cotta e condita)\n- ✓ Ripieno (ragù + besciamella + complementi, uniti)\n- ✓ Stampo (unto e impanato)\n\n*Se manca qualcosa, torna al menu.*",
+            "choices": [
+                {
+                    "text": "Tutto pronto, procedi",
+                    "next": "assembla_proc"
+                },
+                {
+                    "text": "← Torna al menu",
+                    "next": "hub_main"
+                }
+            ],
+            "resources": []
+        },
+        "assembla_proc": {
+            "content": "# Assemblaggio – Procedimento\n\n1. **Rivesti lo stampo**: disponi uno strato di pasta sul fondo e sulle pareti, premendo bene\n\n2. **Inserisci il ripieno**: versa il composto di ragù, besciamella e complementi\n\n3. **Copri**: chiudi con altra pasta, sigillando bene i bordi\n\n4. **Livella**: premi delicatamente per compattare\n\n5. **Rifinisci**: distribuisci fiocchetti di burro sulla superficie (**20 g**)",
+            "choices": [
+                {
+                    "text": "Vai alla cottura",
+                    "next": "cottura"
+                }
+            ],
+            "resources": []
+        },
+        "cottura": {
+            "content": "# Cottura\n\n⚠️ **Fase irreversibile**\n\n1. **Forno**: preriscalda a **180°C** (statico) o **160°C** (ventilato)\n\n2. **Cuoci** per **40-50 minuti**, finché la superficie è ben dorata\n\n3. **Riposo**: sforna e lascia riposare **10 minuti** nello stampo\n\n4. **Sforma**: capovolgi su un piatto da portata\n\n*Il riposo è fondamentale: permette al timballo di assestarsi e facilita la sformatura.*",
+            "choices": [
+                {
+                    "text": "Completa",
+                    "next": "fine"
+                }
+            ],
+            "resources": []
+        },
+        "fine": {
+            "content": "# Timballo pronto!\n\n🎉 Complimenti!\n\nIl tuo timballo di maccheroni è pronto per essere servito.\n\n**Suggerimenti:**\n- Servi caldo ma non bollente\n- Taglia con un coltello affilato\n- Accompagna con un'insalata fresca\n\n*Buon appetito!*",
+            "choices": [],
+            "resources": []
+        }
+    }
+}

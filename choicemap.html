@@ -4,440 +4,86 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ChoiceMap - Interactive Decision Tree</title>
-    <meta name="description" content="ChoiceMap: A framework for documenting non-linear processes through interactive decision trees">
+    <meta name="description" content="ChoiceMap: A framework for documenting multi-choice processes through interactive decision trees">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* CSS variables are set dynamically by JavaScript from theme.json */
-
-        * {
-            box-sizing: border-box;
-        }
-
-        body {
-            margin: 0;
-            padding: 0;
-            font-family: var(--font-family, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif);
-            background: var(--bg);
-            min-height: 100vh;
-            overflow-x: hidden;
-        }
-        
-        .slide-container {
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
-        
-        .slide-content {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            padding: 2rem;
-            max-width: 900px;
-            margin: 0 auto;
-            width: 100%;
-        }
-        
-        .slide-content h1 {
-            color: var(--text);
-            font-size: 2.5rem;
-            margin-bottom: 1.5rem;
-            font-weight: 600;
-        }
-
-        .slide-content h2 {
-            color: var(--text);
-            font-size: 1.5rem;
-            margin-bottom: 1rem;
-            font-weight: 500;
-        }
-
-        .slide-content p {
-            color: var(--text-secondary);
-            font-size: 1.125rem;
-            line-height: 1.7;
-            margin-bottom: 1rem;
-        }
-
-        .slide-content ul {
-            color: var(--text-secondary);
-            font-size: 1.125rem;
-            line-height: 1.7;
-            margin-bottom: 1rem;
-            padding-left: 1.5rem;
-        }
-        
-        .slide-content li {
-            margin-bottom: 0.5rem;
-        }
-        
-        .slide-content blockquote {
-            border-left: 4px solid var(--accent);
-            padding-left: 1rem;
-            margin: 1.5rem 0;
-            color: var(--text-secondary);
-            font-style: italic;
-            background: color-mix(in srgb, var(--accent) 8%, transparent);
-            padding: 1rem;
-            border-radius: 0 8px 8px 0;
-        }
-
-        .slide-content strong {
-            color: var(--text);
-            font-weight: 600;
-        }
-
-        .slide-content em {
-            color: var(--text-secondary);
-        }
-        
-        .choices-container {
-            display: flex;
-            flex-direction: row;
-            flex-wrap: wrap;
-            gap: 1rem;
-            margin-top: 2rem;
-            justify-content: flex-start;
-        }
-        
-        .choice-button {
-            background: var(--choice-bg);
-            color: var(--choice-text);
-            border: none;
-            padding: 1rem 1.5rem;
-            border-radius: 12px;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px color-mix(in srgb, var(--choice-bg) 30%, transparent);
-            min-width: 180px;
-            text-align: center;
-        }
-
-        .choice-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px color-mix(in srgb, var(--choice-bg) 40%, transparent);
-        }
-
-        .choice-button.visited {
-            background: var(--visited-bg);
-            color: var(--visited-text);
-            box-shadow: 0 4px 15px color-mix(in srgb, var(--visited-bg) 30%, transparent);
-        }
-
-        .choice-button.visited::after {
-            content: ' ✓';
-        }
-
-        .choice-button.explored {
-            background: var(--explored-bg);
-            color: var(--explored-text);
-            border: 2px solid var(--accent);
-            box-shadow: 0 4px 15px color-mix(in srgb, var(--explored-bg) 30%, transparent);
-        }
-        
-        /* Header bar - scrolls with content */
-        .header-bar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 1rem 1rem;
-            width: 100%;
-        }
-
-        /* Scenario title - left side of header with ellipsis truncation */
-        .scenario-title {
-            color: var(--text);
-            font-size: 1rem;
-            font-weight: 500;
-            max-width: 50%;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        /* Brand header - right side of header */
-        .brand-header {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-        }
-
-        /* Progress indicator - at bottom, aligned left */
-        .progress-indicator {
-            color: var(--text-muted);
-            font-size: 0.875rem;
-            padding: 1rem;
-        }
-
-        /* Map button - fixed bottom right */
-        .map-button {
-            position: fixed;
-            bottom: 1rem;
-            right: 1rem;
-            background: color-mix(in srgb, var(--accent) 10%, transparent);
-            border: 1px solid var(--accent);
-            color: var(--accent-hover);
-            padding: 0.75rem 1.25rem;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            z-index: 100;
-        }
-
-        .map-button:hover {
-            background: color-mix(in srgb, var(--accent) 20%, transparent);
-        }
-
-        .restart-button {
-            background: var(--restart-bg);
-            color: var(--restart-text);
-            border: none;
-            padding: 1rem 2rem;
-            border-radius: 12px;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px color-mix(in srgb, var(--restart-bg) 30%, transparent);
-            margin-top: 1rem;
-        }
-
-        .restart-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px color-mix(in srgb, var(--restart-bg) 40%, transparent);
-        }
-
-        .terminal-badge {
-            display: inline-block;
-            background: var(--success);
-            color: white;
-            padding: 0.5rem 1rem;
-            border-radius: 20px;
-            font-size: 0.875rem;
-            margin-bottom: 1rem;
-        }
-        
-        .back-button {
-            position: fixed;
-            top: 1rem;
-            left: 50%;
-            transform: translateX(-50%);
-            background: var(--bg);
-            border: 1px solid var(--border);
-            color: var(--text-secondary);
-            padding: 0.5rem 1.25rem;
-            border-radius: 20px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-size: 0.875rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            z-index: 50;
-        }
-
-        .back-button:hover {
-            background: color-mix(in srgb, var(--accent) 10%, transparent);
-            border-color: var(--accent);
-            color: var(--accent-hover);
-        }
-        
-        .back-button svg {
-            width: 16px;
-            height: 16px;
-        }
-        
-        .resources-section {
-            margin-top: 2rem;
-            padding-top: 1.5rem;
-            border-top: 1px solid var(--border);
-        }
-
-        .resources-title {
-            color: var(--text-muted);
-            font-size: 0.875rem;
-            margin-bottom: 1rem;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-
-        .resource-link {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            color: var(--accent-hover);
-            text-decoration: none;
-            padding: 0.5rem 1rem;
-            background: color-mix(in srgb, var(--accent) 8%, transparent);
-            border-radius: 6px;
-            margin-right: 0.75rem;
-            margin-bottom: 0.75rem;
-            transition: all 0.3s ease;
-        }
-
-        .resource-link:hover {
-            background: color-mix(in srgb, var(--accent) 15%, transparent);
-        }
-        
-        .map-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: var(--bg);
-            z-index: 200;
-            display: flex;
-            flex-direction: column;
-            padding: 1rem;
-        }
-
-        .map-header {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 1rem;
-            border-bottom: 1px solid var(--border);
-            position: relative;
-        }
-
-        .map-header h2 {
-            color: var(--text);
-            font-size: 1.5rem;
-            margin: 0;
-            text-align: center;
-        }
-        
-        .close-button {
-            position: absolute;
-            right: 1rem;
-            background: #ef4444;
-            border: none;
-            color: white;
-            cursor: pointer;
-            padding: 0.5rem 1rem;
-            border-radius: 6px;
-            font-size: 1rem;
-            font-weight: 600;
-            text-transform: uppercase;
-        }
-
-        .close-button:hover {
-            background: #dc2626;
-        }
-        
-        .map-content {
-            flex: 1;
-            overflow: auto;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 2rem;
-        }
-        
-        .map-content svg {
-            display: block;
-            margin: auto;
-        }
-        
-        .tree-node {
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        
-        .tree-node:hover {
-            filter: brightness(1.2);
-        }
-        
-        .tree-node.visited {
-            cursor: pointer;
-        }
-        
-        .tree-node.not-visited {
-            opacity: 0.7;
-            cursor: default;
-        }
-        
-        .tree-node.current {
-            filter: brightness(1.1);
-        }
-
-        .loading {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            color: var(--text-secondary);
-            font-size: 1.25rem;
-        }
-
-        .error {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            color: #ef4444;
-            font-size: 1.25rem;
-            flex-direction: column;
-            gap: 1rem;
-        }
-
-        .brand-logo {
-            height: 32px;
-            width: auto;
-        }
-
-        .brand-name {
-            color: var(--text);
-            font-size: 0.9rem;
-            font-weight: 500;
-        }
-
-        .brand-name a {
-            color: inherit;
-            text-decoration: none;
-        }
-
-        .brand-name a:hover {
-            color: var(--accent);
-        }
+        * { box-sizing: border-box; }
+        body { margin: 0; padding: 0; font-family: var(--font-family, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif); background: var(--bg); min-height: 100vh; overflow-x: hidden; }
+        .slide-container { min-height: 100vh; display: flex; flex-direction: column; }
+        .slide-content { flex: 1; display: flex; flex-direction: column; justify-content: center; padding: 2rem; max-width: 900px; margin: 0 auto; width: 100%; }
+        .slide-content h1 { color: var(--text); font-size: 2.5rem; margin-bottom: 1.5rem; font-weight: 600; }
+        .slide-content h2 { color: var(--text); font-size: 1.5rem; margin-bottom: 1rem; font-weight: 500; }
+        .slide-content p { color: var(--text-secondary); font-size: 1.125rem; line-height: 1.7; margin-bottom: 1rem; }
+        .slide-content ul { color: var(--text-secondary); font-size: 1.125rem; line-height: 1.7; margin-bottom: 1rem; padding-left: 1.5rem; }
+        .slide-content li { margin-bottom: 0.5rem; }
+        .slide-content blockquote { border-left: 4px solid var(--accent); padding: 1rem; margin: 1.5rem 0; color: var(--text-secondary); font-style: italic; background: color-mix(in srgb, var(--accent) 8%, transparent); border-radius: 0 8px 8px 0; }
+        .slide-content strong { color: var(--text); font-weight: 600; }
+        .slide-content em { color: var(--text-secondary); }
+        .choices-container { display: flex; flex-wrap: wrap; gap: 1rem; margin-top: 2rem; justify-content: flex-start; }
+        .choice-button { background: var(--choice-bg); color: var(--choice-text); border: none; padding: 1rem 1.5rem; border-radius: 12px; font-size: 1rem; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 4px 15px color-mix(in srgb, var(--choice-bg) 30%, transparent); min-width: 180px; text-align: center; }
+        .choice-button:hover { transform: translateY(-2px); box-shadow: 0 6px 20px color-mix(in srgb, var(--choice-bg) 40%, transparent); }
+        .choice-button.visited { background: var(--visited-bg); color: var(--visited-text); }
+        .choice-button.visited::after { content: ' ✓'; }
+        .choice-button.explored { background: var(--explored-bg); color: var(--explored-text); border: 2px solid var(--accent); }
+        .header-bar { display: flex; justify-content: space-between; align-items: center; padding: 1rem; width: 100%; }
+        .scenario-title { color: var(--text); font-size: 1rem; font-weight: 500; max-width: 50%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .brand-header { display: flex; align-items: center; gap: 0.75rem; }
+        .progress-indicator { color: var(--text-muted); font-size: 0.875rem; padding: 1rem; }
+        .map-button { position: fixed; bottom: 1rem; right: 1rem; background: color-mix(in srgb, var(--accent) 10%, transparent); border: 1px solid var(--accent); color: var(--accent-hover); padding: 0.75rem 1.25rem; border-radius: 8px; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; gap: 0.5rem; z-index: 100; }
+        .map-button:hover { background: color-mix(in srgb, var(--accent) 20%, transparent); }
+        .restart-button { background: var(--restart-bg); color: var(--restart-text); border: none; padding: 1rem 2rem; border-radius: 12px; font-size: 1rem; cursor: pointer; transition: all 0.3s ease; margin-top: 1rem; }
+        .restart-button:hover { transform: translateY(-2px); }
+        .terminal-badge { display: inline-block; background: var(--success); color: white; padding: 0.5rem 1rem; border-radius: 20px; font-size: 0.875rem; margin-bottom: 1rem; }
+        .back-button { position: fixed; top: 1rem; left: 50%; transform: translateX(-50%); background: var(--bg); border: 1px solid var(--border); color: var(--text-secondary); padding: 0.5rem 1.25rem; border-radius: 20px; cursor: pointer; transition: all 0.3s ease; font-size: 0.875rem; display: flex; align-items: center; gap: 0.5rem; z-index: 50; }
+        .back-button:hover { background: color-mix(in srgb, var(--accent) 10%, transparent); border-color: var(--accent); color: var(--accent-hover); }
+        .back-button svg { width: 16px; height: 16px; }
+        .resources-section { margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--border); }
+        .resources-title { color: var(--text-muted); font-size: 0.875rem; margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 0.05em; }
+        .resource-link { display: inline-flex; align-items: center; gap: 0.5rem; color: var(--accent-hover); text-decoration: none; padding: 0.5rem 1rem; background: color-mix(in srgb, var(--accent) 8%, transparent); border-radius: 6px; margin-right: 0.75rem; margin-bottom: 0.75rem; transition: all 0.3s ease; }
+        .resource-link:hover { background: color-mix(in srgb, var(--accent) 15%, transparent); }
+        .map-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: var(--bg); z-index: 200; display: flex; flex-direction: column; }
+        .map-header { display: flex; justify-content: space-between; align-items: center; padding: 1rem 1.5rem; border-bottom: 1px solid var(--border); }
+        .map-header h2 { color: var(--text); font-size: 1.25rem; margin: 0; flex: 1; }
+        .map-toolbar { display: flex; gap: 0.5rem; align-items: center; }
+        .map-toolbar button { padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-size: 0.875rem; transition: all 0.2s; }
+        .btn-secondary { background: color-mix(in srgb, var(--accent) 10%, transparent); border: 1px solid var(--accent); color: var(--accent-hover); }
+        .btn-secondary:hover { background: color-mix(in srgb, var(--accent) 20%, transparent); }
+        .close-button { background: #ef4444; border: none; color: white; cursor: pointer; padding: 0.5rem 1rem; border-radius: 6px; font-size: 1rem; font-weight: 600; }
+        .close-button:hover { background: #dc2626; }
+        .map-content { flex: 1; overflow: auto; display: flex; align-items: center; justify-content: center; padding: 2rem; }
+        .map-footer { padding: 0.75rem 1.5rem; border-top: 1px solid var(--border); font-size: 0.8rem; color: var(--text-muted); }
+        .tree-node { cursor: pointer; transition: all 0.3s ease; }
+        .tree-node:hover { filter: brightness(1.2); }
+        .tree-node.visited { cursor: pointer; }
+        .tree-node.not-visited { opacity: 0.7; cursor: default; }
+        .tree-node.current { filter: brightness(1.1); }
+        .tree-node.dragging { cursor: grabbing; opacity: 0.8; }
+        .loading { display: flex; justify-content: center; align-items: center; min-height: 100vh; color: var(--text-secondary); font-size: 1.25rem; }
+        .error { display: flex; justify-content: center; align-items: center; min-height: 100vh; color: #ef4444; font-size: 1.25rem; flex-direction: column; gap: 1rem; }
+        .brand-logo { height: 32px; width: auto; }
+        .brand-name { color: var(--text); font-size: 0.9rem; font-weight: 500; }
+        .brand-name a { color: inherit; text-decoration: none; }
+        .brand-name a:hover { color: var(--accent); }
     </style>
 </head>
 <body>
     <div id="root"></div>
-    
     <script type="text/babel">
-        const { useState, useEffect } = React;
+        const { useState, useEffect, useRef, useCallback } = React;
 
-        // ============================================================
-        // Theme: Loaded from defaults.json, applied via CSS variables
-        // ============================================================
-
-        // These will be populated from defaults.json
         let fontOptions = {};
         let defaultTheme = {};
+        let layoutConfig = { levelHeight: 120, nodeWidth: 140, nodeHeight: 40, padding: 60 };
 
         const loadGoogleFont = (fontKey) => {
             const font = fontOptions[fontKey];
             if (!font || !font.google) return;
-
             const fontName = font.name.replace(/ /g, '+');
-            const linkId = 'google-font-link';
-            let link = document.getElementById(linkId);
-
-            if (!link) {
-                link = document.createElement('link');
-                link.id = linkId;
-                link.rel = 'stylesheet';
-                document.head.appendChild(link);
-            }
+            let link = document.getElementById('google-font-link');
+            if (!link) { link = document.createElement('link'); link.id = 'google-font-link'; link.rel = 'stylesheet'; document.head.appendChild(link); }
             link.href = `https://fonts.googleapis.com/css2?family=${fontName}:wght@400;500;600;700&display=swap`;
         };
 
@@ -448,13 +94,10 @@
             const b = { ...defaultTheme.buttons, ...t.buttons };
             const m = { ...defaultTheme.map, ...t.map };
             const typ = { ...defaultTheme.typography, ...t.typography };
-
-            // Apply font
             const fontKey = typ.fontFamily || 'system';
             const font = fontOptions[fontKey] || fontOptions['system'];
             loadGoogleFont(fontKey);
-            root.style.setProperty('--font-family', font.family);
-
+            root.style.setProperty('--font-family', font?.family || 'system-ui');
             root.style.setProperty('--bg', c.background);
             root.style.setProperty('--text', c.text);
             root.style.setProperty('--text-secondary', c.textSecondary);
@@ -483,173 +126,148 @@
             root.style.setProperty('--map-line-unvisited', m.lineUnvisited);
         };
 
-        // ============================================================
-        // Helper: Get text value (supports legacy language objects)
-        // ============================================================
         const getText = (value) => {
             if (typeof value === 'string') return value;
-            if (value && typeof value === 'object') {
-                return value[Object.keys(value)[0]] || '';
-            }
+            if (value && typeof value === 'object') return value[Object.keys(value)[0]] || '';
             return '';
         };
 
-        // ============================================================
-        // Markdown Parser Component
-        // ============================================================
+        const calculateNodeLevels = (nodes, startNode) => {
+            const levels = {};
+            const visited = new Set();
+            const queue = [{ id: startNode, level: 0 }];
+            while (queue.length > 0) {
+                const { id, level } = queue.shift();
+                if (visited.has(id) || !nodes[id]) continue;
+                visited.add(id);
+                if (!levels[level]) levels[level] = [];
+                levels[level].push(id);
+                (nodes[id].choices || []).forEach(choice => {
+                    if (choice.next && !visited.has(choice.next)) queue.push({ id: choice.next, level: level + 1 });
+                });
+            }
+            return levels;
+        };
+
+        const calculateAutoPositions = (nodes, startNode) => {
+            const levels = calculateNodeLevels(nodes, startNode);
+            const { levelHeight, nodeWidth, padding } = layoutConfig;
+            const positions = {};
+            let maxWidth = 0;
+            Object.entries(levels).forEach(([level, nodeIds]) => { maxWidth = Math.max(maxWidth, nodeIds.length * nodeWidth); });
+            Object.entries(levels).forEach(([level, nodeIds]) => {
+                const totalWidth = nodeIds.length * nodeWidth;
+                const startX = (maxWidth - totalWidth) / 2 + nodeWidth / 2;
+                nodeIds.forEach((nodeId, index) => { positions[nodeId] = { x: startX + index * nodeWidth + padding, y: parseInt(level) * levelHeight + padding }; });
+            });
+            return { positions, maxWidth, maxLevel: Math.max(...Object.keys(levels).map(Number), 0) };
+        };
+
         const MarkdownContent = ({ content }) => {
             const parseMarkdown = (text) => {
                 if (!text) return [];
-                
                 const lines = text.split('\n');
                 const elements = [];
                 let currentList = [];
-                let inList = false;
-                
-                const processInlineMarkdown = (line) => {
-                    line = line.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
-                    line = line.replace(/\*(.+?)\*/g, '<em>$1</em>');
-                    return line;
-                };
-                
-                const flushList = () => {
-                    if (currentList.length > 0) {
-                        elements.push(
-                            <ul key={`list-${elements.length}`}>
-                                {currentList.map((item, i) => (
-                                    <li key={i} dangerouslySetInnerHTML={{ __html: processInlineMarkdown(item) }} />
-                                ))}
-                            </ul>
-                        );
-                        currentList = [];
-                    }
-                    inList = false;
-                };
-                
+                const processInline = (line) => line.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>').replace(/\*(.+?)\*/g, '<em>$1</em>');
+                const flushList = () => { if (currentList.length > 0) { elements.push(<ul key={`list-${elements.length}`}>{currentList.map((item, i) => <li key={i} dangerouslySetInnerHTML={{ __html: processInline(item) }} />)}</ul>); currentList = []; } };
                 lines.forEach((line, index) => {
-                    if (line.startsWith('# ')) {
-                        flushList();
-                        elements.push(
-                            <h1 key={index} dangerouslySetInnerHTML={{ __html: processInlineMarkdown(line.slice(2)) }} />
-                        );
-                    } else if (line.startsWith('## ')) {
-                        flushList();
-                        elements.push(
-                            <h2 key={index} dangerouslySetInnerHTML={{ __html: processInlineMarkdown(line.slice(3)) }} />
-                        );
-                    } else if (line.startsWith('> ')) {
-                        flushList();
-                        elements.push(
-                            <blockquote key={index} dangerouslySetInnerHTML={{ __html: processInlineMarkdown(line.slice(2)) }} />
-                        );
-                    } else if (line.startsWith('- ')) {
-                        inList = true;
-                        currentList.push(line.slice(2));
-                    } else if (line.trim()) {
-                        flushList();
-                        elements.push(
-                            <p key={index} dangerouslySetInnerHTML={{ __html: processInlineMarkdown(line) }} />
-                        );
-                    } else if (inList) {
-                        flushList();
-                    }
+                    if (line.startsWith('# ')) { flushList(); elements.push(<h1 key={index} dangerouslySetInnerHTML={{ __html: processInline(line.slice(2)) }} />); }
+                    else if (line.startsWith('## ')) { flushList(); elements.push(<h2 key={index} dangerouslySetInnerHTML={{ __html: processInline(line.slice(3)) }} />); }
+                    else if (line.startsWith('> ')) { flushList(); elements.push(<blockquote key={index} dangerouslySetInnerHTML={{ __html: processInline(line.slice(2)) }} />); }
+                    else if (line.startsWith('- ')) { currentList.push(line.slice(2)); }
+                    else if (line.trim()) { flushList(); elements.push(<p key={index} dangerouslySetInnerHTML={{ __html: processInline(line) }} />); }
+                    else { flushList(); }
                 });
-                
                 flushList();
                 return elements;
             };
-            
             return <>{parseMarkdown(content)}</>;
         };
-        
-        // ============================================================
-        // Tree Map Component
-        // ============================================================
-        const TreeMap = ({ scenarioData, nodes, visitedNodes, currentNode, onNodeClick }) => {
-            const [selectedConnection, setSelectedConnection] = useState(null);
 
-            // Tree layout constants (px)
-            const levelHeight = 120;
-            const nodeWidth = 140;
-            const nodeHeight = 40;
-            const padding = 60;
+        const TreeMap = ({ scenarioData, nodes, visitedNodes, currentNode, onNodeClick, onClose, translations }) => {
+            const [draggingNode, setDraggingNode] = useState(null);
+            const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+            const [nodePositions, setNodePositions] = useState({});
+            const [svgSize, setSvgSize] = useState({ width: 800, height: 600 });
+            const svgRef = useRef(null);
+            const { nodeWidth, nodeHeight, padding } = layoutConfig;
 
-            const buildTreeLayout = () => {
-                const nodePositions = {};
-                const nodesByLevel = {};
-                const nodeLevels = {};
-
-                const queue = [{ id: scenarioData.startNode, level: 0 }];
-                const visited = new Set();
-
-                while (queue.length > 0) {
-                    const { id, level } = queue.shift();
-                    if (visited.has(id)) continue;
-                    visited.add(id);
-
-                    if (!nodesByLevel[level]) nodesByLevel[level] = [];
-                    nodesByLevel[level].push(id);
-                    nodeLevels[id] = level;
-
-                    const node = nodes[id];
-                    if (node && node.choices) {
-                        node.choices.forEach(choice => {
-                            if (!visited.has(choice.next)) {
-                                queue.push({ id: choice.next, level: level + 1 });
-                            }
-                        });
-                    }
-                }
-
-                let maxWidth = 0;
-                Object.keys(nodesByLevel).forEach(level => {
-                    const nodesInLevel = nodesByLevel[level];
-                    const totalWidth = nodesInLevel.length * nodeWidth;
-                    maxWidth = Math.max(maxWidth, totalWidth);
+            useEffect(() => {
+                const autoLayout = calculateAutoPositions(nodes, scenarioData.startNode);
+                const positions = {};
+                Object.keys(nodes).forEach(nodeId => {
+                    positions[nodeId] = nodes[nodeId].position ? { ...nodes[nodeId].position } : (autoLayout.positions[nodeId] || { x: padding, y: padding });
                 });
+                setNodePositions(positions);
+                const allX = Object.values(positions).map(p => p.x);
+                const allY = Object.values(positions).map(p => p.y);
+                setSvgSize({ width: Math.max(...allX, 400) + nodeWidth + padding, height: Math.max(...allY, 300) + nodeHeight + padding });
+            }, [nodes, scenarioData.startNode]);
 
-                Object.keys(nodesByLevel).forEach(level => {
-                    const nodesInLevel = nodesByLevel[level];
-                    const totalWidth = nodesInLevel.length * nodeWidth;
-                    const startX = (maxWidth - totalWidth) / 2 + nodeWidth / 2;
-
-                    nodesInLevel.forEach((nodeId, index) => {
-                        nodePositions[nodeId] = {
-                            x: startX + index * nodeWidth + padding,
-                            y: parseInt(level) * levelHeight + padding
-                        };
-                    });
-                });
-
-                const totalLevels = Object.keys(nodesByLevel).length;
-
-                return {
-                    positions: nodePositions,
-                    levels: nodeLevels,
-                    width: maxWidth + padding * 2,
-                    height: totalLevels * levelHeight + padding
-                };
+            // CTRL+drag to move nodes
+            const handleMouseDown = (e, nodeId) => {
+                if (e.button !== 0) return;
+                if (!e.ctrlKey && !e.metaKey) return;
+                
+                e.stopPropagation();
+                e.preventDefault();
+                
+                const svg = svgRef.current;
+                const pt = svg.createSVGPoint();
+                pt.x = e.clientX; pt.y = e.clientY;
+                const svgP = pt.matrixTransform(svg.getScreenCTM().inverse());
+                setDragOffset({ x: svgP.x - nodePositions[nodeId].x, y: svgP.y - nodePositions[nodeId].y });
+                setDraggingNode(nodeId);
             };
 
-            const { positions, levels, width, height } = buildTreeLayout();
+            // Click (without CTRL) to navigate to visited node
+            const handleNodeClickInternal = (e, nodeId) => {
+                if (e.ctrlKey || e.metaKey || draggingNode) return;
+                if (visitedNodes.has(nodeId)) {
+                    onNodeClick(nodeId);
+                }
+            };
 
-            // Build connections with level info
+            const handleMouseMove = useCallback((e) => {
+                if (!draggingNode) return;
+                const svg = svgRef.current;
+                if (!svg) return;
+                const pt = svg.createSVGPoint();
+                pt.x = e.clientX; pt.y = e.clientY;
+                const svgP = pt.matrixTransform(svg.getScreenCTM().inverse());
+                const newX = Math.max(nodeWidth/2, svgP.x - dragOffset.x);
+                const newY = Math.max(nodeHeight/2, svgP.y - dragOffset.y);
+                setNodePositions(prev => ({ ...prev, [draggingNode]: { x: newX, y: newY } }));
+                setSvgSize(prev => ({ width: Math.max(prev.width, newX + nodeWidth + padding), height: Math.max(prev.height, newY + nodeHeight + padding) }));
+            }, [draggingNode, dragOffset, nodeWidth, nodeHeight, padding]);
+
+            const handleMouseUp = useCallback(() => {
+                setDraggingNode(null);
+            }, []);
+
+            useEffect(() => {
+                if (draggingNode) {
+                    window.addEventListener('mousemove', handleMouseMove);
+                    window.addEventListener('mouseup', handleMouseUp);
+                    return () => { window.removeEventListener('mousemove', handleMouseMove); window.removeEventListener('mouseup', handleMouseUp); };
+                }
+            }, [draggingNode, handleMouseMove, handleMouseUp]);
+
+            const handleResetLayout = () => {
+                const autoLayout = calculateAutoPositions(nodes, scenarioData.startNode);
+                setNodePositions(autoLayout.positions);
+                const allX = Object.values(autoLayout.positions).map(p => p.x);
+                const allY = Object.values(autoLayout.positions).map(p => p.y);
+                setSvgSize({ width: Math.max(...allX, 400) + nodeWidth + padding, height: Math.max(...allY, 300) + nodeHeight + padding });
+            };
+
             const connections = [];
-            Object.keys(nodes).forEach(nodeId => {
-                const node = nodes[nodeId];
-                if (node.choices && positions[nodeId]) {
+            Object.entries(nodes).forEach(([nodeId, node]) => {
+                if (node.choices && nodePositions[nodeId]) {
                     node.choices.forEach((choice, idx) => {
-                        if (positions[choice.next]) {
-                            connections.push({
-                                from: positions[nodeId],
-                                to: positions[choice.next],
-                                fromId: nodeId,
-                                toId: choice.next,
-                                fromLevel: levels[nodeId] ?? 0,
-                                toLevel: levels[choice.next] ?? 0,
-                                visited: visitedNodes.has(nodeId) && visitedNodes.has(choice.next),
-                                key: `${nodeId}-${choice.next}-${idx}`
-                            });
+                        if (choice.next && nodePositions[choice.next]) {
+                            connections.push({ from: nodePositions[nodeId], to: nodePositions[choice.next], fromId: nodeId, toId: choice.next, visited: visitedNodes.has(nodeId) && visitedNodes.has(choice.next), key: `${nodeId}-${choice.next}-${idx}` });
                         }
                     });
                 }
@@ -658,481 +276,209 @@
             const getNodeLabel = (nodeId) => {
                 const node = nodes[nodeId];
                 if (!node) return nodeId;
-
                 const content = getText(node.content);
                 const match = content.match(/^#\s+(.+)$/m);
-                if (match) {
-                    const title = match[1].replace(/\*\*/g, '');
-                    return title.length > 15 ? title.slice(0, 12) + '...' : title;
-                }
+                if (match) { const title = match[1].replace(/\*\*/g, ''); return title.length > 15 ? title.slice(0, 12) + '...' : title; }
                 return nodeId;
             };
 
-            // Generate path for connection (straight line or curved arc)
             const getConnectionPath = (conn) => {
-                const x1 = conn.from.x;
-                const y1 = conn.from.y + nodeHeight / 2;
-                const x2 = conn.to.x;
-                const y2 = conn.to.y - nodeHeight / 2;
-
-                // Forward connection (to lower level) - straight line
-                if (conn.toLevel > conn.fromLevel) {
-                    return { path: `M ${x1} ${y1} L ${x2} ${y2}`, type: 'line', x1, y1, x2, y2 };
-                }
-
-                // Same level or backward (loop) - curved arc
-                const isBackward = conn.toLevel < conn.fromLevel;
-                const midX = (x1 + x2) / 2;
-                const midY = (y1 + y2) / 2;
-
-                let curveOffset;
-                if (isBackward) {
-                    const levelDiff = conn.fromLevel - conn.toLevel;
-                    curveOffset = Math.max(80, levelDiff * 40 + 60);
-                } else {
-                    curveOffset = 50;
-                }
-
+                const x1 = conn.from.x, y1 = conn.from.y + nodeHeight / 2, x2 = conn.to.x, y2 = conn.to.y - nodeHeight / 2;
+                const isBackward = conn.to.y < conn.from.y;
+                const isSameLevel = Math.abs(conn.to.y - conn.from.y) < nodeHeight;
+                if (!isBackward && !isSameLevel) return { path: `M ${x1} ${y1} L ${x2} ${y2}`, type: 'line', x1, y1, x2, y2 };
+                const midX = (x1 + x2) / 2, midY = (y1 + y2) / 2;
+                const curveOffset = isBackward ? Math.max(80, Math.abs(conn.from.y - conn.to.y) * 0.3 + 60) : 50;
                 const curveDirection = x1 <= x2 ? 1 : -1;
                 const controlX = midX + (curveOffset * curveDirection * (isBackward ? 1.5 : 1));
                 const controlY = isBackward ? Math.min(y1, y2) - 30 : midY;
-
                 return { path: `M ${x1} ${y1} Q ${controlX} ${controlY} ${x2} ${y2}`, type: 'bezier', x1, y1, x2, y2, cx: controlX, cy: controlY };
             };
 
-            // Calculate midpoint and angle for arrow placement
             const getArrowPosition = (pathData) => {
                 if (pathData.type === 'line') {
-                    const mx = (pathData.x1 + pathData.x2) / 2;
-                    const my = (pathData.y1 + pathData.y2) / 2;
-                    const angle = Math.atan2(pathData.y2 - pathData.y1, pathData.x2 - pathData.x1) * 180 / Math.PI;
-                    return { x: mx, y: my, angle };
-                } else {
-                    const t = 0.5;
-                    const mx = (1-t)*(1-t)*pathData.x1 + 2*(1-t)*t*pathData.cx + t*t*pathData.x2;
-                    const my = (1-t)*(1-t)*pathData.y1 + 2*(1-t)*t*pathData.cy + t*t*pathData.y2;
-                    const tx = 2*(1-t)*(pathData.cx - pathData.x1) + 2*t*(pathData.x2 - pathData.cx);
-                    const ty = 2*(1-t)*(pathData.cy - pathData.y1) + 2*t*(pathData.y2 - pathData.cy);
-                    const angle = Math.atan2(ty, tx) * 180 / Math.PI;
-                    return { x: mx, y: my, angle };
+                    const mx = (pathData.x1 + pathData.x2) / 2, my = (pathData.y1 + pathData.y2) / 2;
+                    return { x: mx, y: my, angle: Math.atan2(pathData.y2 - pathData.y1, pathData.x2 - pathData.x1) * 180 / Math.PI };
                 }
-            };
-
-            // Get connection color based on type, visited state, and selection
-            const getConnectionColor = (conn, isSelected) => {
-                // Selected connections are highlighted
-                if (isSelected) return '#6366f1';
-                // Visited connections use theme color
-                if (conn.visited) return 'var(--map-line-visited)';
-                // Unvisited: color by connection type
-                if (conn.toLevel < conn.fromLevel) return '#f59e0b'; // backward/loop - amber
-                if (conn.toLevel === conn.fromLevel) return '#8b5cf6'; // same level - purple
-                return 'var(--map-line-unvisited)'; // forward - theme unvisited
+                const t = 0.5;
+                const mx = (1-t)*(1-t)*pathData.x1 + 2*(1-t)*t*pathData.cx + t*t*pathData.x2;
+                const my = (1-t)*(1-t)*pathData.y1 + 2*(1-t)*t*pathData.cy + t*t*pathData.y2;
+                const tx = 2*(1-t)*(pathData.cx - pathData.x1) + 2*t*(pathData.x2 - pathData.cx);
+                const ty = 2*(1-t)*(pathData.cy - pathData.y1) + 2*t*(pathData.y2 - pathData.cy);
+                return { x: mx, y: my, angle: Math.atan2(ty, tx) * 180 / Math.PI };
             };
 
             return (
-                <svg
-                    width={Math.max(width, 400)}
-                    height={Math.max(height, 300)}
-                    style={{ display: 'block' }}
-                >
-                    {/* Connections with midpoint arrows */}
-                    {connections.map((conn) => {
-                        const isSelected = selectedConnection === conn.key;
-                        const pathData = getConnectionPath(conn);
-                        const arrowPos = getArrowPosition(pathData);
-                        const color = getConnectionColor(conn, isSelected);
-                        const strokeWidth = isSelected ? 4 : (conn.visited ? 3 : 2);
-                        const isForward = conn.toLevel > conn.fromLevel;
-
-                        return (
-                            <g key={conn.key}>
-                                {/* Invisible wider path for easier clicking */}
-                                <path
-                                    d={pathData.path}
-                                    fill="none"
-                                    stroke="transparent"
-                                    strokeWidth={15}
-                                    style={{ cursor: 'pointer' }}
-                                    onClick={() => setSelectedConnection(isSelected ? null : conn.key)}
-                                />
-                                {/* Visible path */}
-                                <path
-                                    d={pathData.path}
-                                    fill="none"
-                                    stroke={color}
-                                    strokeWidth={strokeWidth}
-                                    strokeDasharray={conn.visited || !isForward ? 'none' : '5,5'}
-                                    style={{ cursor: 'pointer', transition: 'stroke 0.2s, stroke-width 0.2s' }}
-                                    onClick={() => setSelectedConnection(isSelected ? null : conn.key)}
-                                    onMouseEnter={(e) => {
-                                        if (!isSelected) {
-                                            e.target.setAttribute('stroke', '#6366f1');
-                                            e.target.setAttribute('stroke-width', '4');
-                                            e.target.nextSibling?.setAttribute('fill', '#6366f1');
-                                        }
-                                    }}
-                                    onMouseLeave={(e) => {
-                                        if (!isSelected) {
-                                            e.target.setAttribute('stroke', getConnectionColor(conn, false));
-                                            e.target.setAttribute('stroke-width', conn.visited ? '3' : '2');
-                                            e.target.nextSibling?.setAttribute('fill', getConnectionColor(conn, false));
-                                        }
-                                    }}
-                                />
-                                {/* Arrow at midpoint */}
-                                <polygon
-                                    points="-10,-6 10,0 -10,6"
-                                    fill={color}
-                                    transform={`translate(${arrowPos.x}, ${arrowPos.y}) rotate(${arrowPos.angle})`}
-                                    style={{ cursor: 'pointer', transition: 'fill 0.2s' }}
-                                    onClick={() => setSelectedConnection(isSelected ? null : conn.key)}
-                                />
-                            </g>
-                        );
-                    })}
-
-                    {/* Nodes */}
-                    {Object.keys(positions).map(nodeId => {
-                        const pos = positions[nodeId];
-                        const isVisited = visitedNodes.has(nodeId);
-                        const isCurrent = nodeId === currentNode;
-
-                        return (
-                            <g
-                                key={nodeId}
-                                className={`tree-node ${isVisited ? 'visited' : 'not-visited'} ${isCurrent ? 'current' : ''}`}
-                                onClick={() => isVisited && onNodeClick(nodeId)}
-                                transform={`translate(${pos.x}, ${pos.y})`}
-                            >
-                                <rect
-                                    x={-50}
-                                    y={-20}
-                                    width={100}
-                                    height={40}
-                                    rx={8}
-                                    fill={isCurrent ? 'var(--map-node-current)' : isVisited ? 'var(--map-node-visited)' : 'var(--map-node-unvisited)'}
-                                    stroke={isCurrent ? 'var(--map-line-visited)' : isVisited ? 'var(--map-line-visited)' : 'var(--map-node-unvisited-border)'}
-                                    strokeWidth={2}
-                                />
-                                <text
-                                    textAnchor="middle"
-                                    dominantBaseline="middle"
-                                    fill={isCurrent ? 'var(--map-node-current-text)' : isVisited ? 'var(--map-node-visited-text)' : 'var(--map-node-unvisited-text)'}
-                                    fontSize="12"
-                                    fontWeight={isCurrent ? 'bold' : 'normal'}
-                                >
-                                    {getNodeLabel(nodeId)}
-                                </text>
-                            </g>
-                        );
-                    })}
-                </svg>
+                <div className="map-overlay">
+                    <div className="map-header">
+                        <h2>{translations.mapOf} {scenarioData.meta?.title || 'Scenario'}</h2>
+                        <div className="map-toolbar">
+                            <button className="btn-secondary" onClick={handleResetLayout} title="Reset to automatic layout">↻ Auto Layout</button>
+                            <button className="close-button" onClick={onClose}>X</button>
+                        </div>
+                    </div>
+                    <div className="map-content">
+                        <svg ref={svgRef} width={svgSize.width} height={svgSize.height} style={{ display: 'block', margin: 'auto', cursor: draggingNode ? 'grabbing' : 'default' }}>
+                            {connections.map((conn) => {
+                                const pathData = getConnectionPath(conn);
+                                const arrowPos = getArrowPosition(pathData);
+                                const color = conn.visited ? 'var(--map-line-visited)' : 'var(--map-line-unvisited)';
+                                return (
+                                    <g key={conn.key}>
+                                        <path d={pathData.path} fill="none" stroke={color} strokeWidth={2} />
+                                        <polygon points="-8,-5 8,0 -8,5" fill={color} transform={`translate(${arrowPos.x}, ${arrowPos.y}) rotate(${arrowPos.angle})`} />
+                                    </g>
+                                );
+                            })}
+                            {Object.entries(nodePositions).map(([nodeId, pos]) => {
+                                if (!nodes[nodeId]) return null;
+                                const isVisited = visitedNodes.has(nodeId);
+                                const isCurrent = nodeId === currentNode;
+                                const isDragging = draggingNode === nodeId;
+                                let fill, stroke, textFill;
+                                if (isCurrent) { fill = 'var(--map-node-current)'; stroke = 'var(--map-node-current)'; textFill = 'var(--map-node-current-text)'; }
+                                else if (isVisited) { fill = 'var(--map-node-visited)'; stroke = 'var(--map-node-visited)'; textFill = 'var(--map-node-visited-text)'; }
+                                else { fill = 'var(--map-node-unvisited)'; stroke = 'var(--map-node-unvisited-border)'; textFill = 'var(--map-node-unvisited-text)'; }
+                                return (
+                                    <g key={nodeId} 
+                                       className={`tree-node ${isVisited ? 'visited' : 'not-visited'} ${isCurrent ? 'current' : ''} ${isDragging ? 'dragging' : ''}`}
+                                       style={{ cursor: isDragging ? 'grabbing' : (isVisited ? 'pointer' : 'default') }}
+                                       onMouseDown={(e) => handleMouseDown(e, nodeId)}
+                                       onClick={(e) => handleNodeClickInternal(e, nodeId)}>
+                                        <rect x={pos.x - nodeWidth/2 + 10} y={pos.y - nodeHeight/2} width={nodeWidth - 20} height={nodeHeight} rx={8} fill={fill} stroke={stroke} strokeWidth={2} style={{ filter: isDragging ? 'drop-shadow(0 4px 6px rgba(0,0,0,0.2))' : 'none' }} />
+                                        <text x={pos.x} y={pos.y + 4} textAnchor="middle" dominantBaseline="middle" fill={textFill} fontSize="11" fontWeight="500" style={{ pointerEvents: 'none', userSelect: 'none' }}>{getNodeLabel(nodeId)}</text>
+                                    </g>
+                                );
+                            })}
+                        </svg>
+                    </div>
+                    <div className="map-footer">💡 Click visited nodes to navigate • CTRL+drag to reposition</div>
+                </div>
             );
         };
-        
-        // ============================================================
-        // Main ChoiceMap Component
-        // ============================================================
+
         const ChoiceMap = () => {
-            const [config, setConfig] = useState(null);
-            const [theme, setTheme] = useState(defaultTheme);
             const [scenarioData, setScenarioData] = useState(null);
+            const [theme, setTheme] = useState(null);
             const [currentNode, setCurrentNode] = useState(null);
             const [visitedNodes, setVisitedNodes] = useState(new Set());
-            const [choicesMade, setChoicesMade] = useState(new Map());
-            const [path, setPath] = useState([]);
+            const [history, setHistory] = useState([]);
             const [showMap, setShowMap] = useState(false);
             const [loading, setLoading] = useState(true);
             const [error, setError] = useState(null);
-            const [translations, setTranslations] = useState({});
-            const [scenarioTitle, setScenarioTitle] = useState('');
+            const [showCredits, setShowCredits] = useState(true);
 
-            // Load defaults, then config, then theme, then scenario
             useEffect(() => {
-                const cacheBuster = '?v=' + Date.now();
-                let configData = null;
-
-                // First load defaults.json (fontOptions and defaultTheme)
-                fetch('defaults.json' + cacheBuster)
-                    .then(response => {
-                        if (!response.ok) throw new Error('Failed to load defaults.json');
-                        return response.json();
-                    })
-                    .then(defaults => {
-                        fontOptions = defaults.fontOptions;
-                        defaultTheme = defaults.defaultTheme;
-                        applyTheme(defaultTheme); // Apply defaults immediately
-
-                        // Then load config.json
-                        return fetch('config.json' + cacheBuster);
-                    })
-                    .then(response => {
-                        if (!response.ok) throw new Error('Failed to load config.json');
-                        return response.json();
-                    })
-                    .then(data => {
-                        configData = data;
-                        setConfig(data);
-
-                        // Load theme file (from config.theme or default "theme.json")
-                        const themeFile = data.theme || 'theme.json';
-                        return fetch(themeFile + cacheBuster);
-                    })
-                    .then(response => response.ok ? response.json() : defaultTheme)
-                    .catch(() => defaultTheme)
-                    .then(themeData => {
-                        const mergedTheme = { ...defaultTheme, ...themeData };
-                        setTheme(mergedTheme);
-                        applyTheme(mergedTheme);
-
-                        // Now load scenario
-                        return fetch(configData.scenario + cacheBuster);
-                    })
-                    .then(response => {
-                        if (!response.ok) throw new Error('Failed to load scenario');
-                        return response.json();
-                    })
-                    .then(data => {
-                        setScenarioData(data);
-                        setCurrentNode(data.startNode);
-                        setVisitedNodes(new Set([data.startNode]));
-                        setPath([data.startNode]);
-
-                        // Load scenario title from meta
-                        if (data.meta && data.meta.title) {
-                            setScenarioTitle(getText(data.meta.title));
+                const loadAll = async () => {
+                    try {
+                        const defaultsRes = await fetch('defaults.json?v=' + Date.now());
+                        if (defaultsRes.ok) {
+                            const defaults = await defaultsRes.json();
+                            if (defaults.fonts) fontOptions = defaults.fonts;
+                            if (defaults.theme) defaultTheme = defaults.theme;
+                            if (defaults.layout) layoutConfig = { ...layoutConfig, ...defaults.layout };
                         }
-
-                        // Load translations from scenario
-                        if (data.translations) {
-                            setTranslations(data.translations);
-                        }
-
+                        const configRes = await fetch('config.json?v=' + Date.now());
+                        if (!configRes.ok) throw new Error('config.json not found');
+                        const config = await configRes.json();
+                        if (config.showCredits === false) setShowCredits(false);
+                        const scenarioFile = config.scenario || 'scenario.json';
+                        const themeFile = config.theme || 'theme.json';
+                        const [scenarioRes, themeRes] = await Promise.all([fetch(scenarioFile + '?v=' + Date.now()), fetch(themeFile + '?v=' + Date.now())]);
+                        if (!scenarioRes.ok) throw new Error(`Scenario file not found: ${scenarioFile}`);
+                        const scenario = await scenarioRes.json();
+                        const themeData = themeRes.ok ? await themeRes.json() : {};
+                        applyTheme(themeData);
+                        setScenarioData(scenario);
+                        setTheme(themeData);
+                        setCurrentNode(scenario.startNode);
+                        setVisitedNodes(new Set([scenario.startNode]));
+                        setHistory([scenario.startNode]);
                         setLoading(false);
-                    })
-                    .catch(err => {
-                        setError(err.message);
-                        setLoading(false);
-                    });
+                    } catch (err) { setError(err.message); setLoading(false); }
+                };
+                loadAll();
             }, []);
-            
-            const t = translations || {};
-            
-            const handleChoice = (nextNode) => {
-                setChoicesMade(prev => {
-                    const newMap = new Map(prev);
-                    newMap.set(currentNode, nextNode);
-                    return newMap;
-                });
-                
-                setVisitedNodes(prev => new Set([...prev, nextNode]));
-                setPath(prev => [...prev, nextNode]);
-                setCurrentNode(nextNode);
-            };
-            
-            const handleNodeClick = (nodeId) => {
-                if (visitedNodes.has(nodeId)) {
-                    const pathIndex = path.indexOf(nodeId);
-                    if (pathIndex !== -1) {
-                        // Node is in current path: truncate to that point
-                        setPath(path.slice(0, pathIndex + 1));
-                    } else {
-                        // Node not in path (jumped via map): reset path
-                        setPath([nodeId]);
-                    }
-                    setCurrentNode(nodeId);
-                    setShowMap(false);
-                }
-            };
-            
-            const handleRestart = () => {
-                setCurrentNode(scenarioData.startNode);
-                setVisitedNodes(new Set([scenarioData.startNode]));
-                setChoicesMade(new Map());
-                setPath([scenarioData.startNode]);
-            };
-            
-            const handleGoBack = () => {
-                if (path.length > 1) {
-                    const newPath = path.slice(0, -1);
-                    setPath(newPath);
-                    setCurrentNode(newPath[newPath.length - 1]);
-                }
-            };
-            
-            const getPreviousChoice = () => {
-                return choicesMade.get(currentNode);
-            };
-            
-            const canGoBack = path.length > 1;
-            const brand = theme?.brand || {};
-            const hasBrand = brand.name || brand.logo;
 
-            if (loading) {
-                return <div className="loading">Loading...</div>;
-            }
+            const translations = { step: 'Step', restart: 'Start Over', endOfPath: 'End of this path', resources: 'Resources', viewMap: 'View Map', mapOf: 'Map of', back: 'Back', download: 'Download', openLink: 'Open', watchVideo: 'Watch', ...scenarioData?.translations };
+            const handleChoice = (nextNode) => { setVisitedNodes(prev => new Set([...prev, nextNode])); setHistory(prev => [...prev, nextNode]); setCurrentNode(nextNode); };
+            const handleBack = () => { if (history.length > 1) { const newHistory = history.slice(0, -1); setHistory(newHistory); setCurrentNode(newHistory[newHistory.length - 1]); } };
+            const handleRestart = () => { setCurrentNode(scenarioData.startNode); setVisitedNodes(new Set([scenarioData.startNode])); setHistory([scenarioData.startNode]); };
+            const handleMapNodeClick = (nodeId) => { setCurrentNode(nodeId); setHistory(prev => [...prev, nodeId]); setShowMap(false); };
 
-            if (error) {
-                return (
-                    <div className="error">
-                        <div>Error: {error}</div>
-                        <div style={{ fontSize: '0.875rem', color: '#888' }}>
-                            Make sure config.json and scenario file are in the same folder.
-                        </div>
-                    </div>
-                );
-            }
-            
+            if (loading) return <div className="loading">Loading...</div>;
+            if (error) return <div className="error"><span>Error: {error}</span></div>;
+            if (!scenarioData || !currentNode) return <div className="error"><span>No scenario data</span></div>;
+
             const node = scenarioData.nodes[currentNode];
-            if (!node) return <div className="error">Node not found: {currentNode}</div>;
-            
+            if (!node) return <div className="error"><span>Node not found: {currentNode}</span></div>;
+
             const content = getText(node.content);
             const choices = node.choices || [];
             const resources = node.resources || [];
             const isTerminal = choices.length === 0;
-            const previousChoice = getPreviousChoice();
-            
-            const totalNodes = Object.keys(scenarioData.nodes).length;
-            const currentStep = path.length;
-            
+            const currentIndex = history.indexOf(currentNode) + 1;
+
+            const getResourceIcon = (type) => {
+                if (type === 'video') return '▶️';
+                if (type === 'download') return '📥';
+                return '🔗';
+            };
+            const getResourceLabel = (type) => {
+                if (type === 'video') return translations.watchVideo;
+                if (type === 'download') return translations.download;
+                return translations.openLink;
+            };
+
             return (
-                <>
-                    <div className="slide-container">
-                        {canGoBack && (
-                            <button className="back-button" onClick={handleGoBack}>
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                    <polyline points="15 18 9 12 15 6" />
-                                </svg>
-                                {t.back}
-                            </button>
-                        )}
-
-                        {/* Header bar with title and brand - scrolls with content */}
-                        <div className="header-bar">
-                            {scenarioTitle ? (
-                                <div className="scenario-title" title={scenarioTitle}>
-                                    {scenarioTitle}
-                                </div>
-                            ) : <div />}
-                            
-                            {hasBrand ? (
-                                <div className="brand-header">
-                                    {brand.logo && (
-                                        brand.website ? (
-                                            <a href={brand.website} target="_blank" rel="noopener noreferrer">
-                                                <img src={brand.logo} alt={brand.name || 'Logo'} className="brand-logo" />
-                                            </a>
-                                        ) : (
-                                            <img src={brand.logo} alt={brand.name || 'Logo'} className="brand-logo" />
-                                        )
-                                    )}
-                                    {brand.name && (
-                                        <span className="brand-name">
-                                            {brand.website ? (
-                                                <a href={brand.website} target="_blank" rel="noopener noreferrer">{brand.name}</a>
-                                            ) : brand.name}
-                                        </span>
-                                    )}
-                                </div>
-                            ) : <div />}
+                <div className="slide-container">
+                    <div className="header-bar">
+                        <div className="brand-header">
+                            {showCredits && <span className="brand-name"><a href="https://ai-know.pro" target="_blank" rel="noopener noreferrer">ChoiceMap</a></span>}
                         </div>
-                        
-                        <div className="slide-content">
-                            {isTerminal && (
-                                <div className="terminal-badge">{t.endOfPath}</div>
-                            )}
-                            
-                            <MarkdownContent content={content} />
-                            
-                            {choices.length > 0 && (
-                                <div className="choices-container">
-                                    {choices.map((choice, index) => {
-                                        const choiceText = getText(choice.text);
-                                        const isThisChoiceMade = previousChoice === choice.next;
-                                        const isExplored = visitedNodes.has(choice.next) && !isThisChoiceMade;
-                                        
-                                        return (
-                                            <button
-                                                key={index}
-                                                className={`choice-button ${isThisChoiceMade ? 'visited' : ''} ${isExplored ? 'explored' : ''}`}
-                                                onClick={() => handleChoice(choice.next)}
-                                            >
-                                                {choiceText}
-                                            </button>
-                                        );
-                                    })}
-                                </div>
-                            )}
-                            
-                            {isTerminal && (
-                                <button className="restart-button" onClick={handleRestart}>
-                                    {t.restart}
-                                </button>
-                            )}
-                            
-                            {resources.length > 0 && (
-                                <div className="resources-section">
-                                    <div className="resources-title">{t.resources}</div>
-                                    {resources.map((resource, index) => {
-                                        const label = getText(resource.label);
-                                        const icon = resource.type === 'download' ? '📥' : 
-                                                     resource.type === 'video' ? '🎬' : '🔗';
-                                        
-                                        return (
-                                            <a
-                                                key={index}
-                                                href={resource.url}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="resource-link"
-                                                download={resource.type === 'download' ? true : undefined}
-                                            >
-                                                {icon} {label}
-                                            </a>
-                                        );
-                                    })}
-                                </div>
-                            )}
-                        </div>
-
-                        {/* Progress indicator - at bottom, aligned left */}
-                        <div className="progress-indicator">
-                            {t.step} {currentStep} / {totalNodes}
-                        </div>
-                        
-                        {/* Map button - fixed bottom right */}
-                        <button className="map-button" onClick={() => setShowMap(true)}>
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6" />
-                                <line x1="8" y1="2" x2="8" y2="18" />
-                                <line x1="16" y1="6" x2="16" y2="22" />
-                            </svg>
-                            {t.viewMap}
-                        </button>
+                        <div className="scenario-title">{scenarioData.meta?.title}</div>
                     </div>
-                    
-                    {showMap && (
-                        <div className="map-overlay">
-                            <div className="map-header">
-                                <h2>{t.mapOf} {scenarioTitle || 'Scenario'}</h2>
-                                <button className="close-button" onClick={() => setShowMap(false)}>X</button>
-                            </div>
-                            <div className="map-content">
-                                <TreeMap
-                                    scenarioData={scenarioData}
-                                    nodes={scenarioData.nodes}
-                                    visitedNodes={visitedNodes}
-                                    currentNode={currentNode}
-                                    onNodeClick={handleNodeClick}
-                                />
-                            </div>
-                        </div>
+                    {history.length > 1 && (
+                        <button className="back-button" onClick={handleBack}>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+                            {translations.back}
+                        </button>
                     )}
-                </>
+                    <div className="slide-content">
+                        {isTerminal && <span className="terminal-badge">{translations.endOfPath}</span>}
+                        <MarkdownContent content={content} />
+                        {choices.length > 0 && (
+                            <div className="choices-container">
+                                {choices.map((choice, index) => {
+                                    const isVisited = visitedNodes.has(choice.next);
+                                    const allExplored = (scenarioData.nodes[choice.next]?.choices || []).every(c => visitedNodes.has(c.next));
+                                    return (
+                                        <button key={index} className={`choice-button ${isVisited ? (allExplored ? 'explored' : 'visited') : ''}`} onClick={() => handleChoice(choice.next)}>
+                                            {getText(choice.text)}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        )}
+                        {isTerminal && <button className="restart-button" onClick={handleRestart}>{translations.restart}</button>}
+                        {resources.length > 0 && (
+                            <div className="resources-section">
+                                <div className="resources-title">{translations.resources}</div>
+                                {resources.map((res, i) => (
+                                    <a key={i} href={res.url} target="_blank" rel="noopener noreferrer" className="resource-link" download={res.type === 'download' ? true : undefined}>
+                                        {getResourceIcon(res.type)} {getText(res.label) || getResourceLabel(res.type)}
+                                    </a>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                    <div className="progress-indicator">{translations.step} {currentIndex}</div>
+                    <button className="map-button" onClick={() => setShowMap(true)}>🗺️ {translations.viewMap}</button>
+                    {showMap && <TreeMap scenarioData={scenarioData} nodes={scenarioData.nodes} visitedNodes={visitedNodes} currentNode={currentNode} onNodeClick={handleMapNodeClick} onClose={() => setShowMap(false)} translations={translations} />}
+                </div>
             );
         };
-        
+
         ReactDOM.createRoot(document.getElementById('root')).render(<ChoiceMap />);
     </script>
 </body>
