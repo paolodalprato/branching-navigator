@@ -19,6 +19,8 @@ Then start a local server (see [Quick Start](#-quick-start) below).
 
 - **Interactive Decision Trees**: Create multi-path narratives where user choices shape the journey
 - **Visual Journey Map**: Real-time tree visualization with double-click navigation and CTRL/CMD+drag repositioning
+- **Semantic Loop Coloring**: Connection colors based on logical hierarchy, not visual position — loops stay orange even after repositioning nodes
+- **Manual Level Override**: Set explicit levels for nodes to control hierarchy and ensure correct loop detection in complex scenarios
 - **Simple JSON Format**: Plain strings for all content, no complex structures
 - **JSON-Based Content**: Easy-to-edit scenario files, no coding required for content changes
 - **Visual Scenario Editor**: Dedicated tool for creating and managing scenarios
@@ -124,6 +126,7 @@ http://localhost:8000/scenario-editor.html
 - **Welcome Screen**: Start with a new scenario or open an existing file
 - **Node List View**: See all nodes with their level and status (START, END, orphan)
 - **Visual Map View**: Interactive tree visualization of your scenario
+- **Manual Level Override**: Set explicit levels for nodes to control hierarchy and map positioning
 - **Inline Node Creation**: Create new nodes directly from the choice dropdown
 - **Choice Text Validation**: The editor requires button text when creating nodes (prevents invisible choices)
 - **Node Creation Validation**: Both Node ID and Node content are required when creating new nodes (prevents incomplete nodes)
@@ -154,6 +157,31 @@ When deleting a node that has child nodes connected to it:
 - They appear in the Map view with a red border and "orphan" badge
 
 **Best practice**: Delete nodes from the leaves (end nodes) upward, or manually reconnect orphaned nodes to other parent nodes before saving.
+
+### Map View and Connection Colors
+
+The Map view displays your scenario as a visual tree. Connection colors indicate the logical relationship between nodes:
+
+| Color | Meaning |
+|-------|---------|
+| **Gray** | Forward connection (to a descendant node) |
+| **Orange** | Loop connection (to an ancestor node) |
+| **Purple** | Same-level connection (to a sibling node) |
+
+Colors are based on **logical hierarchy** (node levels), not visual position. This means loops stay orange even if you reposition nodes with CTRL+drag.
+
+### Manual Level Override
+
+By default, node levels are calculated automatically based on the shortest path from the start node. However, in complex scenarios with multiple paths to the same node, you may need to set levels explicitly.
+
+In the Node Editor, the **Level** section shows:
+- **Auto-calculated level**: the default BFS-computed level
+- **Override Level field**: set an explicit level to control hierarchy
+
+Use cases for manual level override:
+- Ensure correct loop coloring when automatic calculation doesn't reflect the logical structure
+- Control vertical positioning in the map view
+- Define semantic hierarchy independent of connection paths
 
 ## 🎨 Using the Theme Editor
 

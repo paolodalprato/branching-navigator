@@ -108,34 +108,59 @@
             return levels;
         };
         
-        const getNodeLevel = (nodeId, nodes, startNode) => {
+        // Get effective level for a node (explicit level takes priority over calculated)
+        const getEffectiveLevel = (nodeId, nodes, startNode) => {
+            // If node has explicit level, use it
+            if (nodes[nodeId]?.level !== undefined && nodes[nodeId]?.level !== null && nodes[nodeId]?.level !== '') {
+                return parseInt(nodes[nodeId].level);
+            }
+            // Otherwise calculate via BFS
             const levels = calculateNodeLevels(nodes, startNode);
             for (const [level, nodeIds] of Object.entries(levels)) {
-                if (nodeIds.includes(nodeId)) return { level: parseInt(level), position: nodeIds.indexOf(nodeId) + 1 };
+                if (nodeIds.includes(nodeId)) return parseInt(level);
             }
-            return { level: 0, position: 1 };
+            return 0; // orphan
+        };
+
+        const getNodeLevel = (nodeId, nodes, startNode) => {
+            const effectiveLevel = getEffectiveLevel(nodeId, nodes, startNode);
+            // Calculate position among nodes at same effective level
+            const nodesAtSameLevel = Object.keys(nodes).filter(id => getEffectiveLevel(id, nodes, startNode) === effectiveLevel);
+            const position = nodesAtSameLevel.indexOf(nodeId) + 1;
+            return { level: effectiveLevel, position };
         };
 
         // Calculate automatic positions for nodes without saved positions
+        // Uses effective level (explicit or calculated) for vertical positioning
         const calculateAutoPositions = (nodes, startNode) => {
-            const levels = calculateNodeLevels(nodes, startNode);
-            const maxLevel = Math.max(...Object.keys(levels).map(Number), 1);
             const { levelHeight, nodeWidth, padding } = layoutConfig;
             const positions = {};
             
-            let maxWidth = 0;
-            Object.entries(levels).forEach(([level, nodeIds]) => { 
-                maxWidth = Math.max(maxWidth, nodeIds.length * nodeWidth); 
+            // Group nodes by their effective level
+            const levelGroups = {};
+            Object.keys(nodes).forEach(nodeId => {
+                const effectiveLevel = getEffectiveLevel(nodeId, nodes, startNode);
+                if (!levelGroups[effectiveLevel]) levelGroups[effectiveLevel] = [];
+                levelGroups[effectiveLevel].push(nodeId);
             });
             
-            Object.entries(levels).forEach(([level, nodeIds]) => {
+            const maxLevel = Math.max(...Object.keys(levelGroups).map(Number), 1);
+            
+            // Calculate max width needed
+            let maxWidth = 0;
+            Object.values(levelGroups).forEach(nodeIds => {
+                maxWidth = Math.max(maxWidth, nodeIds.length * nodeWidth);
+            });
+            
+            // Position nodes by their effective level
+            Object.entries(levelGroups).forEach(([level, nodeIds]) => {
                 const totalWidth = nodeIds.length * nodeWidth;
                 const startX = (maxWidth - totalWidth) / 2 + nodeWidth / 2;
-                nodeIds.forEach((nodeId, index) => { 
-                    positions[nodeId] = { 
-                        x: startX + index * nodeWidth + padding, 
-                        y: parseInt(level) * levelHeight + padding 
-                    }; 
+                nodeIds.forEach((nodeId, index) => {
+                    positions[nodeId] = {
+                        x: startX + index * nodeWidth + padding,
+                        y: parseInt(level) * levelHeight + padding
+                    };
                 });
             });
             
@@ -554,10 +579,11 @@
     // ============================================================
     // CREATE NODE POPUP COMPONENT
     // ============================================================
-    const CreateNodePopup = ({ parentNodeId, existingNodeIds, onCreateNode, onCreated, onClose }) => {
+    const CreateNodePopup = ({ parentNodeId, parentLevel, existingNodeIds, onCreateNode, onCreated, onClose }) => {
         const suggestId = () => { let base = `${parentNodeId}_child`, c = 1, id = base; while (existingNodeIds.includes(id)) { id = `${base}_${c}`; c++; } return id; };
         const [nodeId, setNodeId] = useState(suggestId());
         const [content, setContent] = useState('# New Node\\n\\nEdit this content.');
+        const [level, setLevel] = useState(parentLevel + 1);
         const [errors, setErrors] = useState({ id: '', content: '' });
 
         const handleCreate = () => {
@@ -585,14 +611,15 @@
 
             if (hasError) return;
 
-            onCreateNode(cleanId, { content: cleanContent, choices: [], resources: [] });
+            // Include level in the new node
+            onCreateNode(cleanId, { content: cleanContent, level: level, choices: [], resources: [] });
             onCreated(cleanId);
         };
 
         return (
             <div className="modal-overlay">
                 <div className="modal-content">
-                    <div className="modal-header"><h3>Create New Node</h3><button className="btn btn-close" onClick={onClose} style={{ padding: '0.25rem 0.5rem' }}>✕</button></div>
+                                        <div className="modal-header"><h3>Create New Node</h3><button className="btn btn-close" onClick={onClose} style={{ padding: '0.25rem 0.5rem' }}>✕</button></div>
                     <div className="form-group">
                         <label className="form-label">
                             Node ID <span style={{ color: '#ef4444' }}>*</span>
@@ -619,6 +646,18 @@
                         />
                         {errors.content && <div style={{ color: '#ef4444', fontSize: '0.75rem', marginTop: '0.35rem', display: 'flex', alignItems: 'center', gap: '0.25rem' }}><span>⚠️</span> {errors.content}</div>}
                     </div>
+                    <div className="form-group">
+                        <label className="form-label">Level</label>
+                        <input
+                            type="number"
+                            className="form-input"
+                            value={level}
+                            onChange={(e) => setLevel(parseInt(e.target.value) || 1)}
+                            min="1"
+                            style={{ width: '80px' }}
+                        />
+                        <span style={{ fontSize: '0.75rem', color: '#6b7280', marginLeft: '0.5rem' }}>Default: parent level + 1</span>
+                    </div>
                     <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem' }}>
                         <button className="btn btn-success" onClick={handleCreate}>Create</button>
                         <button className="btn btn-danger" onClick={onClose}>CANCEL</button>
@@ -631,12 +670,15 @@
         // ============================================================
         // CHOICE EDITOR COMPONENT
         // ============================================================
-        const ChoiceEditor = ({ choice, index, nodeIds, parentNodeId, onChange, onRemove, onCreateNode }) => {
+        const ChoiceEditor = ({ choice, index, nodeIds, parentNodeId, nodes, startNode, onChange, onRemove, onCreateNode }) => {
             const [showCreate, setShowCreate] = useState(false);
             const [localText, setLocalText] = useState(choice.text || '');
             const [localTarget, setLocalTarget] = useState(choice.next || '');
             const [errors, setErrors] = useState({ text: null, target: null });
             const [pendingTarget, setPendingTarget] = useState(null);
+
+            // Get parent level for default child level calculation
+            const parentLevel = getEffectiveLevel(parentNodeId, nodes, startNode);
 
             // Check if local values differ from saved values
             const hasUnsavedChanges = localText !== (choice.text || '') || localTarget !== (choice.next || '');
@@ -768,7 +810,7 @@
                             Save Choice
                         </button>
                     </div>
-                    {showCreate && <CreateNodePopup parentNodeId={parentNodeId} existingNodeIds={nodeIds} onCreateNode={onCreateNode} onCreated={handleNodeCreated} onClose={() => { setShowCreate(false); setPendingTarget(null); }} />}
+                                        {showCreate && <CreateNodePopup parentNodeId={parentNodeId} parentLevel={parentLevel} existingNodeIds={nodeIds} onCreateNode={onCreateNode} onCreated={handleNodeCreated} onClose={() => { setShowCreate(false); setPendingTarget(null); }} />}
                 </div>
             );
         };
@@ -929,14 +971,22 @@
         // ============================================================
         // NODE EDITOR COMPONENT
         // ============================================================
-        const NodeEditor = ({ nodeId, node, nodeIds, startNode, onUpdateNode, onDeleteNode, onRenameNode, onCreateNode }) => {
+        const NodeEditor = ({ nodeId, node, nodeIds, nodes, startNode, onUpdateNode, onDeleteNode, onRenameNode, onCreateNode }) => {
             const [newNodeId, setNewNodeId] = useState(nodeId);
             const [showRename, setShowRename] = useState(false);
+
+            // Get calculated level for display
+            const calculatedLevel = getEffectiveLevel(nodeId, nodes, startNode);
+            const hasExplicitLevel = node.level !== undefined && node.level !== null && node.level !== '';
 
             useEffect(() => { setNewNodeId(nodeId); setShowRename(false); }, [nodeId]);
 
             const handleRename = () => { if (newNodeId && newNodeId !== nodeId && !nodeIds.includes(newNodeId)) { onRenameNode(nodeId, newNodeId); setShowRename(false); } };
             const updateContent = (value) => onUpdateNode(nodeId, { ...node, content: value });
+            const updateLevel = (value) => {
+                const newLevel = value === '' ? undefined : parseInt(value);
+                onUpdateNode(nodeId, { ...node, level: newLevel });
+            };
             const updateChoice = (i, c) => { const nc = [...(node.choices || [])]; nc[i] = c; onUpdateNode(nodeId, { ...node, choices: nc }); };
             const addChoice = () => onUpdateNode(nodeId, { ...node, choices: [...(node.choices || []), { text: '', next: '' }] });
             const removeChoice = (i) => onUpdateNode(nodeId, { ...node, choices: (node.choices || []).filter((_, idx) => idx !== i) });
@@ -969,8 +1019,47 @@
                     </div>
 
                     <div className="form-section">
+                        <h3>📊 Level</h3>
+                        <div className="form-group">
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                                <div>
+                                    <label className="form-label">Override Level</label>
+                                    <input 
+                                        type="number" 
+                                        className="form-input" 
+                                        value={node.level !== undefined && node.level !== null ? node.level : ''} 
+                                        onChange={(e) => updateLevel(e.target.value)}
+                                        min="1"
+                                        placeholder="Auto"
+                                        style={{ width: '80px' }}
+                                    />
+                                </div>
+                                <div style={{ fontSize: '0.85rem', color: '#6b7280' }}>
+                                    {hasExplicitLevel ? (
+                                        <span>
+                                            Explicit: <strong style={{ color: '#10b981' }}>L{node.level}</strong>
+                                            <button 
+                                                className="btn btn-secondary" 
+                                                onClick={() => updateLevel('')}
+                                                style={{ marginLeft: '0.5rem', padding: '0.2rem 0.5rem', fontSize: '0.7rem' }}
+                                            >
+                                                Reset to Auto
+                                            </button>
+                                        </span>
+                                    ) : (
+                                        <span>Auto-calculated: <strong>L{calculatedLevel}</strong></span>
+                                    )}
+                                </div>
+                            </div>
+                            <p style={{ fontSize: '0.75rem', color: '#9ca3af', marginTop: '0.5rem' }}>
+                                Leave empty for automatic level calculation. Set explicitly to override for correct loop coloring.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div className="form-section">
                         <h3>🔀 Choices ({(node.choices || []).length})</h3>
-                        {(node.choices || []).map((choice, i) => <ChoiceEditor key={i} choice={choice} index={i} nodeIds={nodeIds} parentNodeId={nodeId} onChange={(c) => updateChoice(i, c)} onRemove={() => removeChoice(i)} onCreateNode={onCreateNode} />)}
+                        {(node.choices || []).map((choice, i) => <ChoiceEditor key={i} choice={choice} index={i} nodeIds={nodeIds} parentNodeId={nodeId} nodes={nodes} startNode={startNode} onChange={(c) => updateChoice(i, c)} onRemove={() => removeChoice(i)} onCreateNode={onCreateNode} />)}
                         <button className="btn btn-success" onClick={addChoice}>+ Add Choice</button>
                         {(node.choices || []).length === 0 && <p style={{ fontSize: '0.8rem', color: '#9ca3af', marginTop: '0.5rem', textAlign: 'center' }}>No choices = terminal node</p>}
                     </div>
@@ -1158,8 +1247,8 @@
                             <button className="btn btn-secondary" onClick={() => setShowMetaEditor(true)}>⚙️ Settings</button>
                         </div>
                         
-                        {selectedNode && scenario.nodes[selectedNode] ? (
-                            <NodeEditor nodeId={selectedNode} node={scenario.nodes[selectedNode]} nodeIds={nodeIds} startNode={scenario.startNode} onUpdateNode={handleUpdateNode} onDeleteNode={handleDeleteNode} onRenameNode={handleRenameNode} onCreateNode={handleCreateNode} />
+                                                {selectedNode && scenario.nodes[selectedNode] ? (
+                            <NodeEditor nodeId={selectedNode} node={scenario.nodes[selectedNode]} nodeIds={nodeIds} nodes={scenario.nodes} startNode={scenario.startNode} onUpdateNode={handleUpdateNode} onDeleteNode={handleDeleteNode} onRenameNode={handleRenameNode} onCreateNode={handleCreateNode} />
                         ) : (
                             <div className="empty-state"><h2>No node selected</h2><p>Select a node from the sidebar.</p></div>
                         )}
