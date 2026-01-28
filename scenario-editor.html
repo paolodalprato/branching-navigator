@@ -582,7 +582,7 @@
     const CreateNodePopup = ({ parentNodeId, parentLevel, existingNodeIds, onCreateNode, onCreated, onClose }) => {
         const suggestId = () => { let base = `${parentNodeId}_child`, c = 1, id = base; while (existingNodeIds.includes(id)) { id = `${base}_${c}`; c++; } return id; };
         const [nodeId, setNodeId] = useState(suggestId());
-        const [content, setContent] = useState('# New Node\\n\\nEdit this content.');
+        const [content, setContent] = useState('# New Node\n\nEdit this content.');
         const [level, setLevel] = useState(parentLevel + 1);
         const [errors, setErrors] = useState({ id: '', content: '' });
 
