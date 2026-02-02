@@ -1,10 +1,24 @@
 # ChoiceMap
 
+**Version 2.0 — February 2025**
+
 **A framework for documenting multiple-choice processes.**
 
 ChoiceMap transforms complex workflows into interactive experiences. Instead of reading a document from start to finish, users navigate through a decision tree where each choice opens a different path. Perfect for process documentation, corporate training, troubleshooting guides, compliance flows, and interactive storytelling.
 
 👉 **[Try the live demo](https://paolodalprato.github.io/ChoiceMap/navigator.html)** — The demo is a ChoiceMap scenario that explains ChoiceMap itself: an interactive guide to the framework's architecture, tools, and workflow.
+
+### Screenshots
+
+**Navigator** (User View)
+
+[![Navigator interface](docs/img/navigator-interface.png)](docs/img/navigator-interface.png)
+*The card view with content, choices, and resources*
+
+**Scenario Editor** (Admin View)
+
+[![Scenario Editor map](docs/img/scenario-editor-map.png)](docs/img/scenario-editor-map.png)
+*The visual map for managing scenario structure*
 
 ## 📥 Installation
 
