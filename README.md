@@ -1,6 +1,6 @@
 # ChoiceMap
 
-**Version 2.0 — February 2025**
+**Version 2.0 — February 2026**
 
 **A framework for documenting multiple-choice processes.**
 
