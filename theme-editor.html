@@ -41,6 +41,9 @@
         let fontOptions = {};
         let defaultTheme = {};
 
+        // Sanitization helpers for preview template
+        const { escapeHtml, sanitizeUrl } = window.ChoiceMapUtils;
+
         // ============================================================
         // COLOR INPUT COMPONENT
         // ============================================================
@@ -138,16 +141,16 @@
                     <style>${previewStyles}</style>
                 </head>
                 <body>
-                    <div class="scenario-title">${fileName.replace(/\.json$/i, '')}</div>
+                    <div class="scenario-title">${escapeHtml(fileName.replace(/\.json$/i, ''))}</div>
                     ${hasBrand ? `
                         <div class="brand">
                             ${theme.brand.logo ? (theme.brand.website
-                                ? `<a href="${theme.brand.website}" target="_blank"><img src="${theme.brand.logo}" alt="Logo"></a>`
-                                : `<img src="${theme.brand.logo}" alt="Logo">`)
+                                ? `<a href="${escapeHtml(sanitizeUrl(theme.brand.website))}" target="_blank"><img src="${escapeHtml(sanitizeUrl(theme.brand.logo))}" alt="Logo"></a>`
+                                : `<img src="${escapeHtml(sanitizeUrl(theme.brand.logo))}" alt="Logo">`)
                             : ''}
                             ${theme.brand.name ? (theme.brand.website
-                                ? `<a href="${theme.brand.website}" target="_blank"><span>${theme.brand.name}</span></a>`
-                                : `<span>${theme.brand.name}</span>`)
+                                ? `<a href="${escapeHtml(sanitizeUrl(theme.brand.website))}" target="_blank"><span>${escapeHtml(theme.brand.name)}</span></a>`
+                                : `<span>${escapeHtml(theme.brand.name)}</span>`)
                             : ''}
                         </div>
                     ` : ''}

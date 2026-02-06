@@ -1,0 +1,127 @@
+{
+    "meta": {
+        "title": "Lasagne alla bolognese",
+        "description": "La ricetta classica con ragù di carne e besciamella",
+        "author": "Paolo Dalprato"
+    },
+    "translations": {
+        "step": "Step",
+        "restart": "Start Over",
+        "endOfPath": "End of this path",
+        "resources": "Resources",
+        "viewMap": "View Map",
+        "mapOf": "Map of",
+        "back": "Back",
+        "download": "Download",
+        "openLink": "Open",
+        "watchVideo": "Watch",
+        "mapAlignH": "Align H",
+        "mapAlignV": "Align V",
+        "mapDistribH": "Distrib H",
+        "mapDistribV": "Distrib V",
+        "mapSelectLevel": "Select Level",
+        "mapAutoLayout": "Auto Layout"
+    },
+    "startNode": "start",
+    "nodes": {
+        "start": {
+            "content": "# Ingredienti\n\n## Per il ragù di carne\n- Polpa di manzo macinata (o battuto fine di manzo)\n- Pancetta\n- Cipolla\n- Carota\n- Sedano\n- Burro\n- Passata o conserva di pomodoro\n- Brodo di carne\n- Sale, pepe\n\n## Per la besciamella\n- Latte intero\n- Burro\n- Farina\n- Sale\n- Noce moscata\n\n## Per la composizione\n- Lasagne di sfoglia all’uovo\n- Parmigiano Reggiano grattugiato\n- Fiocchetti di burro",
+            "level": 1,
+            "position": {
+                "x": 200,
+                "y": 180
+            },
+            "choices": [
+                {
+                    "text": "Preparazione del ragù",
+                    "next": "start_ragu"
+                },
+                {
+                    "text": "Preparazione besciamella",
+                    "next": "start_besciamella"
+                },
+                {
+                    "text": "Preparazione sfoglie",
+                    "next": "start_sfoglie"
+                }
+            ],
+            "resources": []
+        },
+        "start_ragu": {
+            "content": "# Ragù\n\n- Tritare finemente cipolla, carota e sedano.\n- Far soffriggere dolcemente nel burro con la pancetta tritata.\n- Unire la carne e farla rosolare finché perde il colore rosso.\n- Aggiungere il pomodoro.\n- Bagnare poco per volta con brodo.\n- Cuocere lentamente a fuoco dolce (almeno 1½–2 ore).\n- Regolare di sale e pepe.",
+            "level": 2,
+            "position": {
+                "x": 130,
+                "y": 300
+            },
+            "choices": [
+                {
+                    "text": "Assemblaggio",
+                    "next": "start_assemblaggio"
+                }
+            ],
+            "resources": []
+        },
+        "start_besciamella": {
+            "content": "# Besciamella\n\n- Sciogliere il burro a fuoco dolce.\n- Unire la farina mescolando senza far colorire.\n- Versare il latte caldo poco alla volta.\n- Mescolare fino a ottenere una crema liscia.\n- Salare e profumare con noce moscata.",
+            "level": 2,
+            "position": {
+                "x": 440,
+                "y": 300
+            },
+            "choices": [
+                {
+                    "text": "Assemblaggio",
+                    "next": "start_assemblaggio"
+                }
+            ],
+            "resources": []
+        },
+        "start_sfoglie": {
+            "content": "# Sfoglia\n\n- Lessare le lasagne in acqua salata.\n- Scolarle e raffreddarle in acqua fredda.\n- Stenderle su canovacci puliti.",
+            "level": 3,
+            "position": {
+                "x": 280,
+                "y": 400
+            },
+            "choices": [
+                {
+                    "text": "Assemblaggio",
+                    "next": "start_assemblaggio"
+                }
+            ],
+            "resources": []
+        },
+        "start_assemblaggio": {
+            "content": "# Assemblaggio\n\n- Imburrare la teglia.\n- Stendere un velo di besciamella.\n- Disporre uno strato di lasagne.\n- Aggiungere ragù.\n- Velare con besciamella.\n- Spolverare con Parmigiano.\n- Ripetere fino a esaurimento ingredienti.\n- Terminare con besciamella, Parmigiano e fiocchetti di burro.",
+            "level": 4,
+            "position": {
+                "x": 200,
+                "y": 540
+            },
+            "choices": [
+                {
+                    "text": "Cottura",
+                    "next": "start_cottura"
+                }
+            ],
+            "resources": []
+        },
+        "start_cottura": {
+            "content": "# Cottura\n\n- Forno statico a 180 °C.\n- Cuocere per 35–40 minuti.\n- Lasciare riposare 10–15 minuti prima di servire.",
+            "level": 5,
+            "position": {
+                "x": 200,
+                "y": 660
+            },
+            "choices": [],
+            "resources": [
+                {
+                    "type": "link",
+                    "label": "Ricetta completa (PDF)",
+                    "url": "lasagne_al_ragu_e_besciamella.pdf"
+                }
+            ]
+        }
+    }
+}

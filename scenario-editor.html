@@ -310,10 +310,10 @@
             const handleSelectSameLevel = () => {
                 if (multiSelectedNodes.size === 0) return;
                 const referenceNode = Array.from(multiSelectedNodes)[0];
-                const currentLevel = getNodeLevel(referenceNode, nodes, startNode).level;
+                const currentLevel = getNodeLevel(referenceNode, nodes, startNode, levelsMap).level;
                 const sameLevel = new Set();
                 Object.keys(nodes).forEach(nodeId => {
-                    if (getNodeLevel(nodeId, nodes, startNode).level === currentLevel) {
+                    if (getNodeLevel(nodeId, nodes, startNode, levelsMap).level === currentLevel) {
                         sameLevel.add(nodeId);
                     }
                 });
@@ -402,7 +402,8 @@
                 setNodePositions(newPositions);
             };
 
-            // Build connections with metadata
+            // Build connections with metadata (pre-calculate BFS once)
+            const levelsMap = calculateNodeLevels(nodes, startNode);
             const connections = [];
             Object.entries(nodes).forEach(([nodeId, node]) => {
                 if (node.choices && nodePositions[nodeId]) {
@@ -410,8 +411,8 @@
                         if (choice.next && nodePositions[choice.next]) {
                             const fromPos = nodePositions[nodeId];
                             const toPos = nodePositions[choice.next];
-                            const fromLevel = getNodeLevel(nodeId, nodes, startNode).level;
-                            const toLevel = getNodeLevel(choice.next, nodes, startNode).level;
+                            const fromLevel = getNodeLevel(nodeId, nodes, startNode, levelsMap).level;
+                            const toLevel = getNodeLevel(choice.next, nodes, startNode, levelsMap).level;
                             connections.push({ 
                                 from: fromPos, 
                                 to: toPos, 
@@ -429,7 +430,7 @@
             });
             
             const isTerminal = (nodeId) => !nodes[nodeId]?.choices || nodes[nodeId].choices.length === 0;
-            const isOrphan = (nodeId) => getNodeLevel(nodeId, nodes, startNode).level === 0;
+            const isOrphan = (nodeId) => getNodeLevel(nodeId, nodes, startNode, levelsMap).level === 0;
             
             // Map connection utilities from shared-utils
             const getConnectionPath = (conn) => sharedGetConnectionPath(conn, nodeHeight);
@@ -623,9 +624,10 @@
         // ============================================================
         const NodeList = ({ scenario, selectedNode, onSelectNode, startNode }) => {
             const nodeIds = Object.keys(scenario.nodes);
+            const levelsMap = calculateNodeLevels(scenario.nodes, startNode);
             const getNodeTitle = (nodeId) => { const c = scenario.nodes[nodeId]?.content || ''; const m = c.match(/^#\s+(.+)$/m); return m ? m[1].replace(/\*\*/g, '').slice(0, 30) : 'Untitled'; };
             const isTerminal = (nodeId) => (scenario.nodes[nodeId]?.choices || []).length === 0;
-            const getNodeLevelInfo = (nodeId) => { const info = getNodeLevel(nodeId, scenario.nodes, startNode); return info.level === 0 ? 'orphan' : `L${info.level}-P${info.position}`; };
+            const getNodeLevelInfo = (nodeId) => { const info = getNodeLevel(nodeId, scenario.nodes, startNode, levelsMap); return info.level === 0 ? 'orphan' : `L${info.level}-P${info.position}`; };
             return (
                 <div className="node-list">
                     {nodeIds.map(nodeId => (
